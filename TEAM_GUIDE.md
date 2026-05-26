@@ -1,24 +1,32 @@
 # Guide pratique — Axel & Davi
 
+> [!NOTE]
 > **Pour qui** : Axel et Davi, première fois avec GitHub Projects.
 > **But** : que vous puissiez bosser à 2 SANS jamais vous demander "j'ai oublié quoi faire" ou "j'ai cassé le code de l'autre".
 > **Format** : exemples concrets, commandes à copier-coller, schémas visuels.
+
+> [!IMPORTANT]
+> Ce doc se lit en entier (20 min) AVANT de toucher au code. Sinon vous allez vous tromper sur des trucs basiques et le board va perdre toute sa valeur.
 
 ---
 
 ## ⚡ Le concept en 1 minute
 
+> [!TIP]
+> **À retenir** : tout ce que tu codes passe par ce cycle ↓. Aucune exception.
+
 ```
 1 ISSUE  =  1 TÂCHE  =  1 BRANCHE  =  1 PR  =  1 MERGE
 ```
 
-Tout ce que tu codes passe par ce cycle. Aucune exception. Si tu sors de ce cycle, le board devient faux et l'autre ne sait plus où tu en es.
+Si tu sors de ce cycle, le board devient faux et l'autre ne sait plus où tu en es.
 
 ---
 
 ## 🎬 Le cycle complet — exemple concret de A à Z
 
-Prenons l'issue **#5 — lexer: tokenisation basique**.
+> [!NOTE]
+> **Brief** : on déroule l'issue #5 ("lexer: tokenisation basique") du début à la fin. Ce flow est le MÊME pour les 50+ issues à venir. Apprends-le par cœur sur celle-ci.
 
 ### Étape 1 — Tu choisis la carte sur le board
 
@@ -39,7 +47,10 @@ Tu vois tes issues dans la colonne **Todo**. Filtre par label : tape `label:spri
                                                                     
 ```
 
-**Drag&drop** #5 de Todo vers **In Progress**. (C'est la SEULE action manuelle du cycle ; le reste est automatique.)
+**Drag&drop** #5 de Todo vers **In Progress**.
+
+> [!TIP]
+> C'est la SEULE action manuelle du cycle. Tout le reste (passage en In Review, Done, etc.) se fait automatiquement grâce aux workflows GitHub Projects.
 
 ### Étape 2 — Tu prépares ta branche sur ton Mac
 
@@ -59,6 +70,9 @@ git checkout -b feat/lexer-tokenize
 ✅ Tu es maintenant sur **ta** branche. Ce que tu fais ici est isolé de Davi.
 
 ### Étape 3 — Tu codes
+
+> [!NOTE]
+> **Brief** : tu es maintenant en mode "tunnel". Tu codes ta feature, tu testes, sans toucher au reste du projet.
 
 Tu crées `src/lexer/tokenize.c`, tu codes la fonction, tu testes. Pendant ce temps, **Davi sur sa branche est totalement isolé**, vous ne pouvez pas vous gêner.
 
@@ -90,7 +104,8 @@ norminette src/                 # norme 42 OK ?
 git push
 ```
 
-⚠️ **Si UN test fail, NE FAIS PAS LA PR.** Corrige d'abord. Une PR avec tests cassés c'est non.
+> [!CAUTION]
+> **Si UN test fail, NE FAIS PAS LA PR.** Corrige d'abord. Une PR avec tests cassés c'est non — ça crée du bruit, casse la confiance et fait perdre du temps à Davi en review.
 
 ### Étape 5 — Tu ouvres la Pull Request (PR)
 
@@ -105,6 +120,9 @@ OU manuellement :
 - Clique **"Create pull request"**
 
 ### Étape 6 — RÈGLE ABSOLUE : tu mets `Closes #5` dans la description
+
+> [!IMPORTANT]
+> **La seule règle indispensable de tout le workflow.** Sans `Closes #N`, l'automatisation casse intégralement.
 
 Le template de PR s'ouvre. **DANS LA DESCRIPTION** (pas juste le titre), tu mets :
 
@@ -126,12 +144,16 @@ Closes #5
 - [x] no leaks
 ```
 
-**⚠️ SI TU OUBLIES `Closes #5`** :
-- L'issue #5 reste coincée dans "In Progress" pour toujours
-- Le board ne reflète plus la réalité
-- Tu galères à comprendre où t'en es au sprint suivant
+> [!WARNING]
+> **Si tu oublies `Closes #5`** :
+> - L'issue #5 reste coincée dans "In Progress" pour toujours
+> - Le board ne reflète plus la réalité
+> - Tu galères à comprendre où t'en es au sprint suivant
+>
+> Solution : éditer la PR (bouton "Edit"), ajouter `Closes #5` dans la description, save. Le workflow se redéclenche.
 
-Synonymes acceptés : `Closes #5`, `Fixes #5`, `Resolves #5` (tous fonctionnent pareil).
+> [!TIP]
+> Synonymes acceptés : `Closes #5`, `Fixes #5`, `Resolves #5` (tous fonctionnent pareil).
 
 ### Étape 7 — La carte bouge TOUTE SEULE
 
@@ -161,7 +183,10 @@ Il va sur la PR, onglet **"Files changed"**, lit ton code :
 
 Une fois approuvé, tu vois le bouton vert **"Merge pull request"** (la branche `main` est protégée donc tu ne pouvais pas merger SANS approval).
 
-**Choisis "Squash and merge"** (déroule le menu si tu vois autre chose). Pourquoi squash : tes 8 commits "feat: WIP", "fix typo" deviennent UN seul commit propre dans `dev`. L'historique reste lisible.
+> [!IMPORTANT]
+> **Choisis "Squash and merge"** (déroule le menu si tu vois autre chose).
+>
+> Pourquoi squash : tes 8 commits "feat: WIP", "fix typo" deviennent UN seul commit propre dans `dev`. L'historique reste lisible.
 
 Clique **"Confirm squash and merge"**.
 
@@ -195,30 +220,47 @@ Et voilà. Tu repars à l'étape 1 avec la prochaine issue.
 
 ## 🛡️ Les 5 règles d'or — à TATOUER sur le bras
 
+> [!IMPORTANT]
+> **Brief** : ces 5 règles couvrent 95% des problèmes possibles. Les respecter = pas de drame de la session.
+
 ### 1. Toujours `Closes #N` dans la description de la PR
-Sans ça, l'automatisation casse. Pas de Closes = pas de merge (politique d'équipe, pas une règle GitHub).
+
+> [!CAUTION]
+> Sans ça, l'automatisation casse. Pas de Closes = pas de merge (politique d'équipe, pas une règle GitHub).
 
 ### 2. Jamais `git push` direct sur `main` ou `dev`
-- `main` est protégée (GitHub refusera de toute façon)
-- `dev` n'est pas protégée techniquement, mais on s'interdit d'y pusher direct. Toujours via PR.
+
+> [!WARNING]
+> - `main` est protégée (GitHub refusera de toute façon)
+> - `dev` n'est pas protégée techniquement, mais on s'interdit d'y pusher direct. Toujours via PR.
 
 ### 3. Une issue = une branche = une PR
-Pas de "je fais 3 issues sur ma branche, je fais une grosse PR". Trop dur à reviewer, trop dur à revert.
+
+> [!NOTE]
+> Pas de "je fais 3 issues sur ma branche, je fais une grosse PR". Trop dur à reviewer, trop dur à revert si bug.
 
 ### 4. Avant de pusher, tu lances les tests
+
 ```bash
 make && bash tests/run_sprint.sh <N> && norminette src/
 ```
-Si UN seul truc fail → tu corriges, tu pushes PAS.
+
+> [!CAUTION]
+> Si UN seul truc fail → tu corriges, tu pushes PAS.
 
 ### 5. Pull souvent, push souvent
-- Le matin : `git checkout dev && git pull` AVANT de créer une branche
-- Le soir : `git push` même si pas fini (au moins ton code est en ligne)
-- Plus tu attends, plus les conflits sont gros
+
+> [!TIP]
+> - Le matin : `git checkout dev && git pull` AVANT de créer une branche
+> - Le soir : `git push` même si pas fini (au moins ton code est en ligne)
+> - Plus tu attends, plus les conflits sont gros
 
 ---
 
 ## 🚨 Les erreurs classiques (et comment les éviter)
+
+> [!NOTE]
+> **Brief** : tout le monde fait ces erreurs au moins une fois. Pas grave si tu les attrapes tôt. Voici la procédure pour chacune.
 
 ### "J'ai modifié `main` au lieu de `dev`"
 ```bash
@@ -259,15 +301,25 @@ git reset --hard HEAD~1   # ⚠️ DESTRUCTIF : annule le commit ET les modifs
 ```
 
 ### "J'ai déjà push et je veux annuler"
-Ne fais PAS `git push --force`. À la place :
+
+> [!CAUTION]
+> Ne fais PAS `git push --force` sur `dev` ou `main`. Ça réécrit l'historique, ça peut écraser le travail de Davi.
+
+À la place :
 ```bash
 git revert <hash_du_commit>   # crée un nouveau commit qui annule l'ancien
 git push
 ```
 
+> [!TIP]
+> `revert` est non-destructif : il ajoute un commit qui défait l'ancien. L'historique reste propre et lisible.
+
 ---
 
 ## 📝 Conventions de commit (rapide)
+
+> [!NOTE]
+> **Brief** : on suit le standard [Conventional Commits](https://www.conventionalcommits.org/fr/). Avantage : l'historique git devient lisible en un coup d'œil ("ah, 5 feat, 2 fix, 1 refactor cette semaine").
 
 Format : `<type>(<scope>): <description>`
 
@@ -294,6 +346,9 @@ Le `<scope>` = le module touché (lexer, parser, executor, etc.). Optionnel mais
 ---
 
 ## 🧭 Cheat sheet — commandes git que tu utiliseras 1000 fois
+
+> [!TIP]
+> Imprime cette section et colle-la à côté de ton écran les 2 premières semaines. Après ça devient un réflexe.
 
 ```bash
 # Vue d'ensemble
@@ -357,6 +412,9 @@ Recommandation : regarde Grafikart (lien ci-dessus) AVANT de commencer, c'est 30
 ---
 
 ## 🎯 Si tu te perds — l'ordre des choses
+
+> [!IMPORTANT]
+> **Brief** : à chaque blocage, regarde cette liste. La réponse à 95% de tes questions est dans un fichier `docs/` ou ce guide.
 
 1. **Tu ne sais pas quelle issue prendre ?** → board → filtre `label:sprint:S1` → prends-en une assignée à toi ou non assignée
 2. **Tu sais pas comment faire ?** → ce fichier, partie "Le cycle complet"
