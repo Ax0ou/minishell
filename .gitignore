@@ -1,0 +1,34 @@
+# Compiled objects
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+
+# Executable
+minishell
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Dependencies (libft compilée mais sources versionnées)
+libft/*.o
+libft/libft.a
+
+# Tests
+tests/tmp/
+tests/out.txt
+*.log
+*.out
+
+# Valgrind / debug
+vgcore.*
+core
+core.*
+
+# OS
+Thumbs.db
