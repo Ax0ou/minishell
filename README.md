@@ -33,9 +33,16 @@
 
 ## Liens rapides
 
-- [Board GitHub Projects](#) ← à remplir après création
-- [Repo GitHub](#) ← à remplir après création
-- [Sujet PDF](#) ← stocker dans `docs/subject.pdf`
+- **Repo GitHub** : https://github.com/Ax0ou/minishell
+- **Issues** (55 créées) : https://github.com/Ax0ou/minishell/issues
+- **Milestones** (J1–J4) : https://github.com/Ax0ou/minishell/milestones
+- **Board GitHub Projects** : (à créer manuellement — voir GETTING_STARTED.md)
+- **Sujet PDF** : à dupliquer dans `docs/subject.pdf`
+
+## Collaborateurs
+
+- **Axel** (`@Ax0ou`) — Personne A (frontend : lexer / parser / expander + builtins simples)
+- **Davi** (`@DaVy0903`) — Personne B (backend : executor / env / utils + builtins lourds)
 
 ## Structure (cible) — ~60 fichiers .c, voir détail dans ARCHITECTURE.md
 
