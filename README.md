@@ -36,7 +36,7 @@
 - **Repo GitHub** : https://github.com/Ax0ou/minishell
 - **Issues** (55 créées) : https://github.com/Ax0ou/minishell/issues
 - **Milestones** (J1–J4) : https://github.com/Ax0ou/minishell/milestones
-- **Board GitHub Projects** : (à créer manuellement — voir GETTING_STARTED.md)
+- **Board GitHub Projects** : onglet "Projects" du repo (workflow auto-configuré : Todo → In Progress → In Review → Done)
 - **Sujet PDF** : à dupliquer dans `docs/subject.pdf`
 
 ## Collaborateurs
