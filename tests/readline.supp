@@ -1,0 +1,46 @@
+# Suppressions valgrind pour les leaks de readline.
+# Le sujet 42 autorise explicitement les leaks venant de readline (lib externe).
+# Cf docs/EDGE_CASES.md §9.1.
+#
+# Usage :
+#   valgrind --leak-check=full --suppressions=tests/readline.supp ./minishell
+
+{
+   readline_init_alloc
+   Memcheck:Leak
+   match-leak-kinds: reachable,possible,definite
+   ...
+   fun:readline
+}
+
+{
+   add_history_alloc
+   Memcheck:Leak
+   match-leak-kinds: reachable,possible,definite
+   ...
+   fun:add_history
+}
+
+{
+   rl_wildcard_alloc
+   Memcheck:Leak
+   match-leak-kinds: reachable,possible,definite
+   ...
+   fun:rl_*
+}
+
+{
+   history_alloc
+   Memcheck:Leak
+   match-leak-kinds: reachable,possible,definite
+   ...
+   fun:history_*
+}
+
+{
+   readline_terminal_init
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*/libreadline*
+}
