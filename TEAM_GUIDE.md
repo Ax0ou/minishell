@@ -1,12 +1,12 @@
 # Guide pratique — Axel & Davi
 
 > [!NOTE]
-> **Pour qui** : Axel et Davi, première fois avec GitHub Projects.
+> **Pour qui** : Axel et Davi
 > **But** : que vous puissiez bosser à 2 SANS jamais vous demander "j'ai oublié quoi faire" ou "j'ai cassé le code de l'autre".
 > **Format** : exemples concrets, commandes à copier-coller, schémas visuels.
 
 > [!IMPORTANT]
-> Ce doc se lit en entier (20 min) AVANT de toucher au code. Sinon vous allez vous tromper sur des trucs basiques et le board va perdre toute sa valeur.
+> Ce doc se lit en entier (20 min) AVANT de toucher au code.
 
 ---
 
@@ -26,8 +26,7 @@ Si tu sors de ce cycle, le board devient faux et l'autre ne sait plus où tu en 
 ## 🎬 Le cycle complet — exemple concret de A à Z
 
 > [!NOTE]
-> **Brief** : on déroule l'issue #5 ("lexer: tokenisation basique") du début à la fin. Ce flow est le MÊME pour les 50+ issues à venir. Apprends-le par cœur sur celle-ci.
-
+> **Brief** : on déroule l'issue #5 ("lexer: tokenisation basique") du début à la fin. Ce flow est le MÊME pour les 50+ issues à venir
 ### Étape 1 — Tu choisis la carte sur le board
 
 Va sur https://github.com/Ax0ou/minishell → onglet **Projects** → ouvre le board "Minishell".
@@ -44,7 +43,7 @@ Tu vois tes issues dans la colonne **Todo**. Filtre par label : tape `label:spri
 │ #8 echo         │              │             │           │      │
 │ ...             │              │             │           │      │
 └─────────────────┴──────────────┴─────────────┴───────────┴──────┘
-                                                                    
+
 ```
 
 **Drag&drop** #5 de Todo vers **In Progress**.
