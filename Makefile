@@ -1,10 +1,12 @@
-NAME = minishell.a
+NAME = minishell
 
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
 
 LIBFT_DIR = libft
 LIBFT = $(LIBFT_DIR)/libft.a
+
+LDFLAGS = -lreadline
 
 SRC = 	src/builtins/bi_cd.c \
 		src/builtins/bi_echo.c \
@@ -66,7 +68,7 @@ RM = rm -f
 all: $(NAME)
 
 $(NAME): $(LIBFT) $(OBJ)
-	@$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
+	@$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -o $(NAME)
 	@echo "$(NAME) compiled"
 
 $(LIBFT):
