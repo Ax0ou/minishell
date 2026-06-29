@@ -75,4 +75,7 @@ typedef struct s_shell
 	t_pipeline	*ast;
 }	t_shell;
 
+t_env	*env_init(char **envp);
+void	env_free(t_env *env);
+
 #endif
