@@ -77,6 +77,9 @@ typedef struct s_shell
 
 t_env	*env_init(char **envp);
 void	env_free(t_env *env);
+char	*env_get(t_env *env, char *key);
+int		env_set(t_env **env, char *key, char *value, int exported);
+void	env_unset(t_env **env, char *key);
 
 /*lexer stuff*/
 t_token	*new_token(t_token_type type, char *value);

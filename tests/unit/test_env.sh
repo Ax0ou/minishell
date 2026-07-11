@@ -55,4 +55,56 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 	fi
 fi
 
+echo "═══ Tests unitaires env_access (get/set/unset) — Issue #13 ═══"
+
+ACCESS_TEST_BIN="/tmp/minishell_env_access_test"
+ACCESS_VALGRIND_LOG="/tmp/minishell_env_access_valgrind.log"
+trap 'rm -f "$ENV_TEST_BIN" "$VALGRIND_LOG" "$ACCESS_TEST_BIN" "$ACCESS_VALGRIND_LOG"' EXIT
+
+cc -Wall -Wextra -Werror \
+	tests/unit/env_access_runner.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/utils/ut_cleanup.c \
+	libft/libft.a \
+	-o "$ACCESS_TEST_BIN"
+
+expected='get USER -> [bomfim]
+get MISSING -> [(null)]
+get USER after update -> [davi]
+get NEW_VAR after create -> [hello]
+get PATH after unset -> [(null)]
+unset missing key ok
+key=[NEW_VAR] value=[hello] exported=[1]
+key=[USER] value=[davi] exported=[1]'
+
+actual=$("$ACCESS_TEST_BIN")
+assert_eq "env_get lookup existant" "get USER -> [bomfim]" "$(echo "$actual" | sed -n '1p')"
+assert_eq "env_get lookup absent -> NULL" "get MISSING -> [(null)]" "$(echo "$actual" | sed -n '2p')"
+assert_eq "env_set met à jour une clé existante" "get USER after update -> [davi]" "$(echo "$actual" | sed -n '3p')"
+assert_eq "env_set crée une nouvelle clé" "get NEW_VAR after create -> [hello]" "$(echo "$actual" | sed -n '4p')"
+assert_eq "env_unset retire une clé existante" "get PATH after unset -> [(null)]" "$(echo "$actual" | sed -n '5p')"
+assert_eq "env_unset sur clé absente ne crash pas" "unset missing key ok" "$(echo "$actual" | sed -n '6p')"
+assert_eq "env_set préserve exported=1 même avec exported=0 en update" "key=[USER] value=[davi] exported=[1]" "$(echo "$actual" | sed -n '8p')"
+assert_eq "env_access — sortie complète" "$expected" "$actual"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$ACCESS_TEST_BIN" >"$ACCESS_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} env_get/env_set/env_unset sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} env_get/env_set/env_unset sans leak Valgrind\n"
+		sed 's/^/    /' "$ACCESS_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("env_get/env_set/env_unset sans leak Valgrind")
+	fi
+fi
+
 summary
