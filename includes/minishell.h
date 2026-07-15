@@ -82,8 +82,9 @@ int		env_set(t_env **env, char *key, char *value, int exported);
 void	env_unset(t_env **env, char *key);
 
 /*lexer stuff*/
-t_token	*new_token(t_token_type type, char *value);
 void	token_add_back(t_token **head, t_token *new);
+t_token	*new_token(t_token_type type, char *value);
 t_token	*lex_tokenize(char *line);
+t_token_type detect_operator(char *line, int i, int *len);
 
 #endif
