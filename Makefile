@@ -37,6 +37,7 @@ SRC = 	src/builtins/bi_cd.c \
 		src/lexer/lex_token_list_free.c \
 		src/lexer/lex_tokenize_utils.c \
 		src/lexer/lex_tokenize.c \
+		src/lexer/lex_operators.c \
 		src/parser/cmd_list_free.c \
 		src/parser/cmd_list_utils.c \
 		src/parser/parse_append.c \

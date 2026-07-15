@@ -79,8 +79,9 @@ t_env	*env_init(char **envp);
 void	env_free(t_env *env);
 
 /*lexer stuff*/
-t_token	*new_token(t_token_type type, char *value);
 void	token_add_back(t_token **head, t_token *new);
+t_token	*new_token(t_token_type type, char *value);
 t_token	*lex_tokenize(char *line);
+t_token_type detect_operator(char *line, int i, int *len);
 
 #endif
