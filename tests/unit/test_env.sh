@@ -107,4 +107,46 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 	fi
 fi
 
+echo "═══ Tests unitaires env_to_array — Issue #14 ═══"
+
+ARRAY_TEST_BIN="/tmp/minishell_env_to_array_test"
+ARRAY_VALGRIND_LOG="/tmp/minishell_env_to_array_valgrind.log"
+trap 'rm -f "$ENV_TEST_BIN" "$VALGRIND_LOG" "$ACCESS_TEST_BIN" "$ACCESS_VALGRIND_LOG" "$ARRAY_TEST_BIN" "$ARRAY_VALGRIND_LOG"' EXIT
+
+cc -Wall -Wextra -Werror \
+	tests/unit/env_to_array_runner.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/env/env_to_array.c \
+	src/utils/ut_cleanup.c \
+	libft/libft.a \
+	-o "$ARRAY_TEST_BIN"
+
+expected='USER=bomfim
+PATH=/usr/bin:/bin
+count=[2]
+count=[0]'
+
+actual=$("$ARRAY_TEST_BIN")
+assert_eq "env_to_array — sortie complète" "$expected" "$actual"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$ARRAY_TEST_BIN" >"$ARRAY_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} env_to_array sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} env_to_array sans leak Valgrind\n"
+		sed 's/^/    /' "$ARRAY_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("env_to_array sans leak Valgrind")
+	fi
+fi
+
 summary

@@ -80,6 +80,7 @@ void	env_free(t_env *env);
 char	*env_get(t_env *env, char *key);
 int		env_set(t_env **env, char *key, char *value, int exported);
 void	env_unset(t_env **env, char *key);
+char	**env_to_array(t_env *env);
 
 /*lexer stuff*/
 void	token_add_back(t_token **head, t_token *new);
