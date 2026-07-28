@@ -149,4 +149,45 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 	fi
 fi
 
+echo "═══ Tests unitaires bi_env — Issue #15 ═══"
+
+BI_ENV_TEST_BIN="/tmp/minishell_bi_env_test"
+BI_ENV_VALGRIND_LOG="/tmp/minishell_bi_env_valgrind.log"
+trap 'rm -f "$ENV_TEST_BIN" "$VALGRIND_LOG" "$ACCESS_TEST_BIN" "$ACCESS_VALGRIND_LOG" "$ARRAY_TEST_BIN" "$ARRAY_VALGRIND_LOG" "$BI_ENV_TEST_BIN" "$BI_ENV_VALGRIND_LOG"' EXIT
+
+cc -Wall -Wextra -Werror \
+	tests/unit/bi_env_runner.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/builtins/bi_env.c \
+	src/utils/ut_cleanup.c \
+	libft/libft.a \
+	-o "$BI_ENV_TEST_BIN"
+
+expected='USER=bomfim
+PATH=/usr/bin:/bin
+ret=[0]'
+
+actual=$("$BI_ENV_TEST_BIN")
+assert_eq "bi_env n'affiche que les variables exportées" "$expected" "$actual"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$BI_ENV_TEST_BIN" >"$BI_ENV_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} bi_env sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} bi_env sans leak Valgrind\n"
+		sed 's/^/    /' "$BI_ENV_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("bi_env sans leak Valgrind")
+	fi
+fi
+
 summary
