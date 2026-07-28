@@ -75,17 +75,20 @@ typedef struct s_shell
 	t_pipeline	*ast;
 }	t_shell;
 
-t_env	*env_init(char **envp);
-void	env_free(t_env *env);
-char	*env_get(t_env *env, char *key);
-int		env_set(t_env **env, char *key, char *value, int exported);
-void	env_unset(t_env **env, char *key);
-char	**env_to_array(t_env *env);
+t_env			*env_init(char **envp);
+void			env_free(t_env *env);
+char			*env_get(t_env *env, char *key);
+int				env_set(t_env **env, char *key, char *value, int exported);
+void			env_unset(t_env **env, char *key);
+char			**env_to_array(t_env *env);
+
+/*builtins*/
+int				bi_env(t_env *env);
 
 /*lexer stuff*/
-void	token_add_back(t_token **head, t_token *new);
-t_token	*new_token(t_token_type type, char *value);
-t_token	*lex_tokenize(char *line);
-t_token_type detect_operator(char *line, int i, int *len);
+void			token_add_back(t_token **head, t_token *new);
+t_token			*new_token(t_token_type type, char *value);
+t_token			*lex_tokenize(char *line);
+t_token_type	detect_operator(char *line, int i, int *len);
 
 #endif
