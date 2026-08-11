@@ -31,6 +31,13 @@ typedef enum e_token_type
 	T_APPEND
 }	t_token_type;
 
+typedef enum e_lex_state
+{
+	STATE_NORMAL,
+	STATE_SQUOTE,
+	STATE_DQUOTE
+}	t_lex_state;
+
 typedef struct s_token
 {
 	t_token_type	type;
@@ -89,6 +96,14 @@ int				bi_env(t_env *env);
 void			token_add_back(t_token **head, t_token *new);
 t_token			*new_token(t_token_type type, char *value);
 t_token			*lex_tokenize(char *line);
+void			token_list_free(t_token *head);
 t_token_type	detect_operator(char *line, int i, int *len);
+void			append_char(char *buffer, char c);
+void			flush_buffer(t_token **head, char *buffer);
+void			lex_reset_state(void);
+int				lex_in_quote(void);
+int				lex_is_quote_char(char c);
+int				lex_is_operator_char(char c);
+void			lex_handle_quote_char(char c, char *buffer);
 
 #endif

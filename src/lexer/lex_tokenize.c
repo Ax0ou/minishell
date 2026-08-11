@@ -6,7 +6,7 @@
 /*   By: aalvard <aalvarad@student.42lausanne.ch    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/01 12:46:52 by aalvard           #+#    #+#             */
-/*   Updated: 2026/07/14 14:10:53 by aalvard          ###   ########.fr       */
+/*   Updated: 2026/08/01 15:16:29 by aalvard          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,26 +14,6 @@
 
 static void	process_char(t_token **tokens, char *line, char *buffer, int *i);
 static void	handle_operator(t_token **head, char *line, char *buffer, int *i);
-
-static void	append_char(char *buffer, char c)
-{
-	int	len;
-
-	len = ft_strlen(buffer);
-	buffer[len] = c;
-	buffer[len + 1] = '\0';
-}
-
-static void	flush_buffer(t_token **head, char *buffer)
-{
-	t_token	*new;
-
-	new = new_token(T_WORD, buffer);
-	if (!new)
-		return ;
-	token_add_back(head, new);
-	buffer[0] = '\0';
-}
 
 t_token	*lex_tokenize(char *line)
 {
@@ -43,25 +23,42 @@ t_token	*lex_tokenize(char *line)
 
 	if (!line)
 		return (NULL);
+	lex_reset_state();
 	tokens = NULL;
 	buffer[0] = '\0';
 	i = 0;
 	while (line[i])
 		process_char(&tokens, line, buffer, &i);
-	if (buffer[0] != '\0')
-		flush_buffer(&tokens, buffer);
+	if (lex_in_quote())
+	{
+		token_list_free(tokens);
+		return (NULL);
+	}
+	flush_buffer(&tokens, buffer);
 	return (tokens);
 }
 
 static void	process_char(t_token **tokens, char *line, char *buffer, int *i)
 {
+	if (lex_in_quote())
+	{
+		lex_handle_quote_char(line[*i], buffer);
+		(*i)++;
+		return ;
+	}
+	if (lex_is_quote_char(line[*i]))
+	{
+		lex_handle_quote_char(line[*i], buffer);
+		(*i)++;
+		return ;
+	}
 	if (line[*i] == ' ')
 	{
-		if (buffer[0] != '\0')
-			flush_buffer(tokens, buffer);
+		flush_buffer(tokens, buffer);
 		(*i)++;
+		return ;
 	}
-	else if (line[*i] == '|' || line[*i] == '<' || line[*i] == '>')
+	if (lex_is_operator_char(line[*i]))
 		handle_operator(tokens, line, buffer, i);
 	else
 	{
@@ -78,8 +75,7 @@ static void	handle_operator(t_token **head, char *line, char *buffer, int *i)
 	char			op[3];
 
 	type = detect_operator(line, *i, &len);
-	if (buffer[0] != '\0')
-		flush_buffer(head, buffer);
+	flush_buffer(head, buffer);
 	op[0] = line[*i];
 	op[1] = '\0';
 	if (len == 2)
