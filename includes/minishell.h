@@ -92,6 +92,9 @@ char			**env_to_array(t_env *env);
 /*builtins*/
 int				bi_env(t_env *env);
 
+/*utils*/
+int				print_error(char *cmd, char *arg, char *msg);
+
 /*lexer stuff*/
 void			token_add_back(t_token **head, t_token *new);
 t_token			*new_token(t_token_type type, char *value);

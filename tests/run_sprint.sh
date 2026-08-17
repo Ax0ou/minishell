@@ -24,6 +24,7 @@ case "$SPRINT" in
         echo "═══ Sprint 1 — Lexer + Env + Builtins simples ═══"
         run_test tests/unit/test_lexer.sh
         run_test tests/unit/test_env.sh
+        run_test tests/unit/test_utils.sh
         run_test tests/integration/test_builtins.sh
         ;;
     2)
