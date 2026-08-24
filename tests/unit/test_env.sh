@@ -25,6 +25,7 @@ cc -Wall -Wextra -Werror \
 	tests/unit/env_init_runner.c \
 	src/env/env_init.c \
 	src/utils/ut_cleanup.c \
+	src/lexer/lex_token_list_free.c \
 	libft/libft.a \
 	-o "$ENV_TEST_BIN"
 
@@ -66,6 +67,7 @@ cc -Wall -Wextra -Werror \
 	src/env/env_init.c \
 	src/env/env_access.c \
 	src/utils/ut_cleanup.c \
+	src/lexer/lex_token_list_free.c \
 	libft/libft.a \
 	-o "$ACCESS_TEST_BIN"
 
@@ -119,6 +121,7 @@ cc -Wall -Wextra -Werror \
 	src/env/env_access.c \
 	src/env/env_to_array.c \
 	src/utils/ut_cleanup.c \
+	src/lexer/lex_token_list_free.c \
 	libft/libft.a \
 	-o "$ARRAY_TEST_BIN"
 
@@ -161,6 +164,7 @@ cc -Wall -Wextra -Werror \
 	src/env/env_access.c \
 	src/builtins/bi_env.c \
 	src/utils/ut_cleanup.c \
+	src/lexer/lex_token_list_free.c \
 	libft/libft.a \
 	-o "$BI_ENV_TEST_BIN"
 

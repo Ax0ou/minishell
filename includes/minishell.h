@@ -94,6 +94,7 @@ int				bi_env(t_env *env);
 
 /*utils*/
 int				print_error(char *cmd, char *arg, char *msg);
+void			shell_free(t_shell *shell);
 
 /*lexer stuff*/
 void			token_add_back(t_token **head, t_token *new);
