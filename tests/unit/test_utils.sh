@@ -58,4 +58,41 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 	fi
 fi
 
+echo "═══ Tests unitaires shell_free — Issue #17 ═══"
+
+FREE_TEST_BIN="/tmp/minishell_shell_free_test"
+FREE_VALGRIND_LOG="/tmp/minishell_shell_free_valgrind.log"
+trap 'rm -f "$ERROR_TEST_BIN" "$ERROR_STDERR_LOG" "$ERROR_VALGRIND_LOG" "$FREE_TEST_BIN" "$FREE_VALGRIND_LOG"' EXIT
+
+cc -Wall -Wextra -Werror \
+	tests/unit/shell_free_runner.c \
+	src/env/env_init.c \
+	src/lexer/lex_token_list.c \
+	src/lexer/lex_token_list_free.c \
+	src/utils/ut_cleanup.c \
+	libft/libft.a \
+	-o "$FREE_TEST_BIN"
+
+actual=$("$FREE_TEST_BIN")
+assert_eq "shell_free libère env + tokens + line sans crash" "ok" "$actual"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$FREE_TEST_BIN" >"$FREE_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} shell_free sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} shell_free sans leak Valgrind\n"
+		sed 's/^/    /' "$FREE_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("shell_free sans leak Valgrind")
+	fi
+fi
+
 summary

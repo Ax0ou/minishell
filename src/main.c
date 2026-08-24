@@ -17,6 +17,6 @@ int	main(int argc, char **argv, char **envp)
 			break ;
 		free(shell.line);
 	}
-	env_free(shell.env);
+	shell_free(&shell);
 	return (0);
 }

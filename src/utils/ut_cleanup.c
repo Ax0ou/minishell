@@ -13,3 +13,11 @@ void	env_free(t_env *env)
 		env = next;
 	}
 }
+
+void	shell_free(t_shell *shell)
+{
+	if (shell->line)
+		free(shell->line);
+	token_list_free(shell->tokens);
+	env_free(shell->env);
+}
