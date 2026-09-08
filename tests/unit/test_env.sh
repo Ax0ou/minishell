@@ -1,13 +1,14 @@
 #!/bin/bash
 # tests/unit/test_env.sh
 # Issue #18 — Tests unitaires env
-# Cf docs/TESTS.md §4.2 pour la liste complète des cas attendus.
 #
-# À REMPLIR AU FUR ET À MESURE :
-# 1. Ouvrir docs/TESTS.md §4.2
-# 2. Copier les blocs de tests pertinents ici
-# 3. Adapter aux fonctions / mode debug réels du minishell
-# 4. Vérifier que le test passe avant de PR
+# Le module env/ (env_init, env_access, env_to_array) et le builtin env
+# (bi_env) sont couverts ici via des runners C compilés à la volée, car le
+# pipeline complet lexer -> parser -> executor n'existe pas encore : les cas
+# "au clavier" de TESTS.md §4.2 (run_shell 'export FOO=bar; echo $FOO', etc.)
+# dépendent de builtins pas encore écrits (echo #8, export #38, unset #39)
+# et de l'executor (#19-#30). À réintégrer tels quels une fois ces briques
+# posées — voir docs/TESTS.md §4.2 pour la liste complète.
 
 set -e
 cd "$(dirname "$0")/../.."
@@ -78,6 +79,9 @@ get NEW_VAR after create -> [hello]
 get PATH after unset -> [(null)]
 unset missing key ok
 key=[NEW_VAR] value=[hello] exported=[1]
+key=[USER] value=[davi] exported=[1]
+get US (pas de faux positif prefix) -> [(null)]
+get NEW_VAR after unset (head) -> [(null)]
 key=[USER] value=[davi] exported=[1]'
 
 actual=$("$ACCESS_TEST_BIN")
@@ -88,6 +92,8 @@ assert_eq "env_set crée une nouvelle clé" "get NEW_VAR after create -> [hello]
 assert_eq "env_unset retire une clé existante" "get PATH after unset -> [(null)]" "$(echo "$actual" | sed -n '5p')"
 assert_eq "env_unset sur clé absente ne crash pas" "unset missing key ok" "$(echo "$actual" | sed -n '6p')"
 assert_eq "env_set préserve exported=1 même avec exported=0 en update" "key=[USER] value=[davi] exported=[1]" "$(echo "$actual" | sed -n '8p')"
+assert_eq "env_get ne fait pas de faux positif sur un préfixe de clé" "get US (pas de faux positif prefix) -> [(null)]" "$(echo "$actual" | sed -n '9p')"
+assert_eq "env_unset retire correctement la tête de la liste" "get NEW_VAR after unset (head) -> [(null)]" "$(echo "$actual" | sed -n '10p')"
 assert_eq "env_access — sortie complète" "$expected" "$actual"
 
 if [ "$RUN_VALGRIND" = "1" ]; then

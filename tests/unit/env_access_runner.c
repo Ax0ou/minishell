@@ -41,6 +41,10 @@ int	main(void)
 	env_unset(&env, "GHOST");
 	printf("unset missing key ok\n");
 	print_env(env);
+	print_get(env, "US", "get US (pas de faux positif prefix)");
+	env_unset(&env, "NEW_VAR");
+	print_get(env, "NEW_VAR", "get NEW_VAR after unset (head)");
+	print_env(env);
 	env_free(env);
 	return (0);
 }
