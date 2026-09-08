@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: aalvard <aalvarad@student.42lausanne.ch    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/08/01 10:10:00 by aalvard           #+#    #+#             */
+/*   Updated: 2026/08/01 15:16:29 by aalvard          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
@@ -37,6 +49,15 @@ typedef enum e_lex_state
 	STATE_SQUOTE,
 	STATE_DQUOTE
 }	t_lex_state;
+
+typedef struct s_lex
+{
+	t_lex_state	state;
+	int			token_active;
+	int			has_quotes;
+	char		buffer[4096];
+	int			i;
+}	t_lex;
 
 typedef struct s_token
 {
@@ -103,11 +124,11 @@ t_token			*lex_tokenize(char *line);
 void			token_list_free(t_token *head);
 t_token_type	detect_operator(char *line, int i, int *len);
 void			append_char(char *buffer, char c);
-void			flush_buffer(t_token **head, char *buffer);
-void			lex_reset_state(void);
-int				lex_in_quote(void);
+void			flush_buffer(t_lex *lex, t_token **head);
+void			lex_init(t_lex *lex);
+int				lex_in_quote(t_lex *lex);
 int				lex_is_quote_char(char c);
 int				lex_is_operator_char(char c);
-void			lex_handle_quote_char(char c, char *buffer);
+void			lex_handle_quote_char(t_lex *lex, char c);
 
 #endif

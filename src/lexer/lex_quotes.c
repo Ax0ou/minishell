@@ -12,20 +12,18 @@
 
 #include "../../includes/minishell.h"
 
-static t_lex_state	g_state;
-static int		g_token_active;
-static int		g_has_quotes;
-
-void	lex_reset_state(void)
+void	lex_init(t_lex *lex)
 {
-	g_state = STATE_NORMAL;
-	g_token_active = 0;
-	g_has_quotes = 0;
+	lex->state = STATE_NORMAL;
+	lex->token_active = 0;
+	lex->has_quotes = 0;
+	lex->buffer[0] = '\0';
+	lex->i = 0;
 }
 
-int	lex_in_quote(void)
+int	lex_in_quote(t_lex *lex)
 {
-	return (g_state != STATE_NORMAL);
+	return (lex->state != STATE_NORMAL);
 }
 
 int	lex_is_quote_char(char c)
@@ -33,40 +31,42 @@ int	lex_is_quote_char(char c)
 	return (c == '\'' || c == '"');
 }
 
-void	lex_handle_quote_char(char c, char *buffer)
+void	lex_handle_quote_char(t_lex *lex, char c)
 {
-	if (!lex_in_quote())
+	if (!lex_in_quote(lex))
 	{
 		if (c == '"')
-			g_state = STATE_DQUOTE;
+			lex->state = STATE_DQUOTE;
 		else
-			g_state = STATE_SQUOTE;
-		g_token_active = 1;
-		g_has_quotes = 1;
+			lex->state = STATE_SQUOTE;
+		lex->token_active = 1;
+		lex->has_quotes = 1;
+		append_char(lex->buffer, c);
 		return ;
 	}
-	if ((g_state == STATE_SQUOTE && c == '\'')
-		|| (g_state == STATE_DQUOTE && c == '"'))
+	if ((lex->state == STATE_SQUOTE && c == '\'')
+		|| (lex->state == STATE_DQUOTE && c == '"'))
 	{
-		g_state = STATE_NORMAL;
+		lex->state = STATE_NORMAL;
+		append_char(lex->buffer, c);
 		return ;
 	}
-	g_token_active = 1;
-	append_char(buffer, c);
+	lex->token_active = 1;
+	append_char(lex->buffer, c);
 }
 
-void	flush_buffer(t_token **head, char *buffer)
+void	flush_buffer(t_lex *lex, t_token **head)
 {
 	t_token	*new;
 
-	if (!g_token_active && buffer[0] == '\0')
+	if (!lex->token_active && lex->buffer[0] == '\0')
 		return ;
-	new = new_token(T_WORD, buffer);
+	new = new_token(T_WORD, lex->buffer);
 	if (!new)
 		return ;
-	new->has_quotes = g_has_quotes;
+	new->has_quotes = lex->has_quotes;
 	token_add_back(head, new);
-	buffer[0] = '\0';
-	g_token_active = 0;
-	g_has_quotes = 0;
+	lex->buffer[0] = '\0';
+	lex->token_active = 0;
+	lex->has_quotes = 0;
 }

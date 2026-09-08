@@ -12,80 +12,77 @@
 
 #include "../../includes/minishell.h"
 
-static void	process_char(t_token **tokens, char *line, char *buffer, int *i);
-static void	handle_operator(t_token **head, char *line, char *buffer, int *i);
+static void	process_char(t_lex *lex, t_token **tokens, char *line);
+static void	handle_operator(t_lex *lex, t_token **head, char *line);
 
 t_token	*lex_tokenize(char *line)
 {
+	t_lex	lex;
 	t_token	*tokens;
-	char	buffer[4096];
-	int		i;
 
 	if (!line)
 		return (NULL);
-	lex_reset_state();
+	lex_init(&lex);
 	tokens = NULL;
-	buffer[0] = '\0';
-	i = 0;
-	while (line[i])
-		process_char(&tokens, line, buffer, &i);
-	if (lex_in_quote())
+	while (line[lex.i])
+		process_char(&lex, &tokens, line);
+	if (lex_in_quote(&lex))
 	{
 		token_list_free(tokens);
 		return (NULL);
 	}
-	flush_buffer(&tokens, buffer);
+	flush_buffer(&lex, &tokens);
 	return (tokens);
 }
 
-static void	process_char(t_token **tokens, char *line, char *buffer, int *i)
+static void	process_char(t_lex *lex, t_token **tokens, char *line)
 {
-	if (lex_in_quote())
+	if (lex_in_quote(lex))
 	{
-		lex_handle_quote_char(line[*i], buffer);
-		(*i)++;
+		lex_handle_quote_char(lex, line[lex->i]);
+		lex->i++;
 		return ;
 	}
-	if (lex_is_quote_char(line[*i]))
+	if (lex_is_quote_char(line[lex->i]))
 	{
-		lex_handle_quote_char(line[*i], buffer);
-		(*i)++;
+		lex_handle_quote_char(lex, line[lex->i]);
+		lex->i++;
 		return ;
 	}
-	if (line[*i] == ' ')
+	if (line[lex->i] == ' ')
 	{
-		flush_buffer(tokens, buffer);
-		(*i)++;
+		flush_buffer(lex, tokens);
+		lex->i++;
 		return ;
 	}
-	if (lex_is_operator_char(line[*i]))
-		handle_operator(tokens, line, buffer, i);
+	if (lex_is_operator_char(line[lex->i]))
+		handle_operator(lex, tokens, line);
 	else
 	{
-		append_char(buffer, line[*i]);
-		(*i)++;
+		append_char(lex->buffer, line[lex->i]);
+		lex->i++;
 	}
 }
 
-static void	handle_operator(t_token **head, char *line, char *buffer, int *i)
+static void	handle_operator(t_lex *lex, t_token **head, char *line)
 {
 	t_token_type	type;
 	int				len;
 	t_token			*new;
 	char			op[3];
 
-	type = detect_operator(line, *i, &len);
-	flush_buffer(head, buffer);
-	op[0] = line[*i];
+	type = detect_operator(line, lex->i, &len);
+	flush_buffer(lex, head);
+	op[0] = line[lex->i];
 	op[1] = '\0';
 	if (len == 2)
 	{
-		op[1] = line[*i + 1];
+		op[1] = line[lex->i + 1];
 		op[2] = '\0';
 	}
 	new = new_token(type, op);
 	if (!new)
 		return ;
 	token_add_back(head, new);
-	*i += len;
+	lex->i += len;
 }
