@@ -23,7 +23,7 @@ int	main(void)
 	shell.tokens = build_tokens();
 	shell.line = ft_strdup("ls | wc");
 	shell.last_exit = 0;
-	shell.ast = NULL;
+	shell.cmds = NULL;
 	shell_free(&shell);
 	printf("ok\n");
 	return (0);

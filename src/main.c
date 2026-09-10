@@ -9,7 +9,7 @@ int	main(int argc, char **argv, char **envp)
 	shell.env = env_init(envp);
 	shell.last_exit = 0;
 	shell.tokens = NULL;
-	shell.ast = NULL;
+	shell.cmds = NULL;
 	while (1)
 	{
 		shell.line = readline("minishell$ ");

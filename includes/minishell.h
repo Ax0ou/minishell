@@ -69,22 +69,17 @@ typedef struct s_token
 
 typedef struct s_redir
 {
-	int				type;		// IN, OUT, APPEND, HEREDOC
-	char			*target;	// fichier ou délimiteur
+	t_token_type	type;
+	char			*target;
 	struct s_redir	*next;
 }	t_redir;
 
 typedef struct s_cmd
 {
-	char			**argv;		// ["ls", "-la", NULL]
-	t_redir			*redirs;	// liste des redirections
-	struct s_cmd	*next;		// prochaine commande du pipeline
+	char			**argv;
+	t_redir			*redirs;
+	struct s_cmd	*next;
 }	t_cmd;
-
-typedef struct s_pipeline
-{
-	t_cmd	*cmds;				// premier maillon
-}	t_pipeline;
 
 typedef struct s_env
 {
@@ -98,9 +93,9 @@ typedef struct s_shell
 {
 	t_env		*env;
 	int			last_exit;
-	char		*line;			// ligne courante (sortie readline)
+	char		*line;
 	t_token		*tokens;
-	t_pipeline	*ast;
+	t_cmd		*cmds;
 }	t_shell;
 
 t_env			*env_init(char **envp);
@@ -116,6 +111,15 @@ int				bi_env(t_env *env);
 /*utils*/
 int				print_error(char *cmd, char *arg, char *msg);
 void			shell_free(t_shell *shell);
+
+/*parser*/
+t_cmd			*parse_tokens(t_token *tokens);
+void			cmd_list_free(t_cmd *cmds);
+t_cmd			*cmd_new(void);
+void			cmd_add_back(t_cmd **head, t_cmd *new);
+int				count_args(t_token *token);
+char			**fill_argv(t_token *token, int n);
+t_token			*skip_to_next_cmd(t_token *token);
 
 /*lexer stuff*/
 void			token_add_back(t_token **head, t_token *new);
