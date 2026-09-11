@@ -50,6 +50,15 @@ typedef enum e_lex_state
 	STATE_DQUOTE
 }	t_lex_state;
 
+typedef enum e_resolve_status
+{
+	RESOLVE_OK,
+	RESOLVE_CNF,
+	RESOLVE_ENOENT,
+	RESOLVE_ISDIR,
+	RESOLVE_NOPERM
+}	t_resolve_status;
+
 typedef struct s_lex
 {
 	t_lex_state	state;
@@ -104,6 +113,12 @@ char			*env_get(t_env *env, char *key);
 int				env_set(t_env **env, char *key, char *value, int exported);
 void			env_unset(t_env **env, char *key);
 char			**env_to_array(t_env *env);
+
+/*executor*/
+t_resolve_status	resolve_path(t_env *env, char *name, char **out_path);
+int					probe_path(char *path);
+void				free_split(char **arr);
+int					handle_candidate(char *dir, char *name, char **out);
 
 /*builtins*/
 int				bi_env(t_env *env);
