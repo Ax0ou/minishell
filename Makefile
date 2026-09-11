@@ -20,6 +20,7 @@ SRC = 	src/builtins/bi_cd.c \
 		src/env/env_to_array.c \
 		src/executor/exec_child.c \
 		src/executor/exec_path.c \
+		src/executor/exec_path_utils.c \
 		src/executor/exec_pipeline.c \
 		src/executor/exec_run.c \
 		src/executor/exec_single.c \

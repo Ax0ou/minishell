@@ -30,6 +30,7 @@ case "$SPRINT" in
     2)
         echo "═══ Sprint 2 — Parser + Executor 1 commande + Redirections ═══"
         run_test tests/unit/test_parser.sh
+        run_test tests/unit/test_executor.sh
         run_test tests/integration/test_single_cmd.sh
         run_test tests/integration/test_redirs.sh
         ;;
