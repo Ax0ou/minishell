@@ -119,6 +119,9 @@ t_resolve_status	resolve_path(t_env *env, char *name, char **out_path);
 int					probe_path(char *path);
 void				free_split(char **arr);
 int					handle_candidate(char *dir, char *name, char **out);
+void				exec_single(t_shell *shell, t_cmd *cmd);
+void				exec_child(char *path, t_cmd *cmd, char **envp);
+int					exec_wait(pid_t pid);
 
 /*builtins*/
 int				bi_env(t_env *env);
