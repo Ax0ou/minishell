@@ -98,6 +98,7 @@ cc -Wall -Wextra -Werror \
 	tests/unit/exec_single_runner.c \
 	src/executor/exec_single.c \
 	src/executor/exec_child.c \
+	src/redirections/redir_files.c \
 	src/executor/exec_wait.c \
 	src/executor/exec_path.c \
 	src/executor/exec_path_utils.c \

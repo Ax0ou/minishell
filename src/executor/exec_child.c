@@ -2,6 +2,8 @@
 
 void	exec_child(char *path, t_cmd *cmd, char **envp)
 {
+	if (apply_redirs(cmd->redirs))
+		exit(1);
 	execve(path, cmd->argv, envp);
 	print_error(cmd->argv[0], NULL, strerror(errno));
 	exit(126);

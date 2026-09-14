@@ -123,6 +123,9 @@ void				exec_single(t_shell *shell, t_cmd *cmd);
 void				exec_child(char *path, t_cmd *cmd, char **envp);
 int					exec_wait(pid_t pid);
 
+/*redirections*/
+int					apply_redirs(t_redir *redirs);
+
 /*builtins*/
 int				bi_env(t_env *env);
 
