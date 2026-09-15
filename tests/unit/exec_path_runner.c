@@ -1,6 +1,6 @@
 #include "../../includes/minishell.h"
 
-static char	*status_name(t_resolve_status status)
+static char	*status_name(t_path_status status)
 {
 	if (status == RESOLVE_OK)
 		return ("OK");
@@ -15,7 +15,7 @@ static char	*status_name(t_resolve_status status)
 
 static void	run_case(char *label, t_env *env, char *name)
 {
-	t_resolve_status	status;
+	t_path_status	status;
 	char				*path;
 
 	status = resolve_path(env, name, &path);

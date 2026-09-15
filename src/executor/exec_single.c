@@ -1,6 +1,6 @@
 #include "../../includes/minishell.h"
 
-static int	report_resolve_error(char *name, t_resolve_status status)
+static int	report_resolve_error(char *name, t_path_status status)
 {
 	if (status == RESOLVE_CNF)
 	{
@@ -29,7 +29,7 @@ static void	cleanup(char *path, char **envp)
 
 void	exec_single(t_shell *shell, t_cmd *cmd)
 {
-	t_resolve_status	status;
+	t_path_status		status;
 	char				*path;
 	char				**envp;
 	pid_t				pid;

@@ -200,4 +200,68 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 	fi
 fi
 
+echo "═══ Tests unitaires bi_cd — Issue #26 ═══"
+
+CD_FIXTURE_DIR=$(mktemp -d /tmp/minishell_bi_cd_fixture.XXXXXX)
+CD_FIXTURE_DIR=$(cd "$CD_FIXTURE_DIR" && pwd)
+CD_TEST_BIN="/tmp/minishell_bi_cd_test"
+CD_VALGRIND_LOG="/tmp/minishell_bi_cd_valgrind.log"
+CD_STDERR_LOG="/tmp/minishell_bi_cd_stderr.log"
+trap 'rm -rf "$CD_FIXTURE_DIR"; rm -f "$CD_TEST_BIN" "$CD_VALGRIND_LOG" "$CD_STDERR_LOG"' EXIT
+
+mkdir -p "$CD_FIXTURE_DIR/home" "$CD_FIXTURE_DIR/work/sub"
+
+cc -Wall -Wextra -Werror \
+	tests/unit/bi_cd_runner.c \
+	src/builtins/bi_cd.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/utils/ut_cleanup.c \
+	src/utils/ut_error.c \
+	src/lexer/lex_token_list_free.c \
+	libft/libft.a \
+	-o "$CD_TEST_BIN"
+
+expected="cd sub -> ret=[0] cwd=[$CD_FIXTURE_DIR/work/sub] PWD=[$CD_FIXTURE_DIR/work/sub] OLDPWD=[$CD_FIXTURE_DIR/work]
+cd (none) -> ret=[0] cwd=[$CD_FIXTURE_DIR/home] PWD=[$CD_FIXTURE_DIR/home] OLDPWD=[$CD_FIXTURE_DIR/work/sub]
+$CD_FIXTURE_DIR/work/sub
+cd - -> ret=[0] cwd=[$CD_FIXTURE_DIR/work/sub] PWD=[$CD_FIXTURE_DIR/work/sub] OLDPWD=[$CD_FIXTURE_DIR/home]
+cd /definitely/not/a/real/path/xyz123 -> ret=[1] cwd=[$CD_FIXTURE_DIR/work/sub] PWD=[$CD_FIXTURE_DIR/work/sub] OLDPWD=[$CD_FIXTURE_DIR/home]
+cd (none) -> ret=[1] cwd=[$CD_FIXTURE_DIR/work/sub] PWD=[$CD_FIXTURE_DIR/work/sub] OLDPWD=[$CD_FIXTURE_DIR/home]"
+
+actual=$("$CD_TEST_BIN" "$CD_FIXTURE_DIR" 2>"$CD_STDERR_LOG")
+
+assert_eq "cd chemin relatif : chdir + PWD/OLDPWD mis a jour" "$(echo "$expected" | sed -n '1p')" "$(echo "$actual" | sed -n '1p')"
+assert_eq "cd sans arg : va dans \$HOME" "$(echo "$expected" | sed -n '2p')" "$(echo "$actual" | sed -n '2p')"
+assert_eq "cd - : affiche le nouveau cwd" "$(echo "$expected" | sed -n '3p')" "$(echo "$actual" | sed -n '3p')"
+assert_eq "cd - : va dans \$OLDPWD, met a jour PWD/OLDPWD" "$(echo "$expected" | sed -n '4p')" "$(echo "$actual" | sed -n '4p')"
+assert_eq "cd chemin inexistant : erreur, cwd/env inchanges" "$(echo "$expected" | sed -n '5p')" "$(echo "$actual" | sed -n '5p')"
+assert_eq "cd sans arg, HOME absent : erreur, cwd/env inchanges" "$(echo "$expected" | sed -n '6p')" "$(echo "$actual" | sed -n '6p')"
+assert_eq "bi_cd — sortie complète" "$expected" "$actual"
+assert_eq "message d'erreur : chemin inexistant" \
+	"minishell: cd: /definitely/not/a/real/path/xyz123: No such file or directory" \
+	"$(sed -n '1p' "$CD_STDERR_LOG")"
+assert_eq "message d'erreur : HOME not set" \
+	"minishell: cd: HOME not set" \
+	"$(sed -n '2p' "$CD_STDERR_LOG")"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$CD_TEST_BIN" "$CD_FIXTURE_DIR" >"$CD_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} bi_cd sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} bi_cd sans leak Valgrind\n"
+		sed 's/^/    /' "$CD_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("bi_cd sans leak Valgrind")
+	fi
+fi
+
 summary

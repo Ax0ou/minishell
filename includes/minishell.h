@@ -57,7 +57,7 @@ typedef enum e_resolve_status
 	RESOLVE_ENOENT,
 	RESOLVE_ISDIR,
 	RESOLVE_NOPERM
-}	t_resolve_status;
+}	t_path_status;
 
 typedef struct s_lex
 {
@@ -115,19 +115,20 @@ void			env_unset(t_env **env, char *key);
 char			**env_to_array(t_env *env);
 
 /*executor*/
-t_resolve_status	resolve_path(t_env *env, char *name, char **out_path);
-int					probe_path(char *path);
-void				free_split(char **arr);
-int					handle_candidate(char *dir, char *name, char **out);
-void				exec_single(t_shell *shell, t_cmd *cmd);
-void				exec_child(char *path, t_cmd *cmd, char **envp);
-int					exec_wait(pid_t pid);
+t_path_status	resolve_path(t_env *env, char *name, char **out_path);
+int				probe_path(char *path);
+void			free_split(char **arr);
+int				handle_candidate(char *dir, char *name, char **out);
+void			exec_single(t_shell *shell, t_cmd *cmd);
+void			exec_child(char *path, t_cmd *cmd, char **envp);
+int				exec_wait(pid_t pid);
 
 /*redirections*/
-int					apply_redirs(t_redir *redirs);
+int				apply_redirs(t_redir *redirs);
 
 /*builtins*/
 int				bi_env(t_env *env);
+int				bi_cd(t_env **env, char **argv);
 
 /*utils*/
 int				print_error(char *cmd, char *arg, char *msg);
