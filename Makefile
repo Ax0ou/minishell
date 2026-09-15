@@ -41,16 +41,12 @@ SRC = 	src/builtins/bi_cd.c \
 		src/lexer/lex_operators.c \
 		src/parser/cmd_list_free.c \
 		src/parser/cmd_list_utils.c \
-		src/parser/parse_append.c \
 		src/parser/parse_args_default.c \
 		src/parser/parse_args_echo.c \
 		src/parser/parse_args_echo_utils.c \
-		src/parser/parse_heredoc.c \
-		src/parser/parse_heredoc_utils.c \
 		src/parser/parse_input.c \
 		src/parser/parse_pipe.c \
-		src/parser/parse_redir_in.c \
-		src/parser/parse_redir_out.c \
+		src/parser/parse_redirs.c \
 		src/parser/parse_word.c \
 		src/redirections/redir_files.c \
 		src/redirections/redir_pipes.c \

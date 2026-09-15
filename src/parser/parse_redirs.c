@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parse_input.c                                      :+:      :+:    :+:   */
+/*   parse_redirs.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aalvard <aalvarad@student.42lausanne.ch    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -12,45 +12,57 @@
 
 #include "../../includes/minishell.h"
 
-static t_cmd	*build_cmd(t_token *tokens)
+t_redir	*redir_new(t_token_type type, char *target)
 {
-	t_cmd	*cmd;
-	int		n;
+	t_redir	*redir;
 
-	cmd = cmd_new();
-	if (!cmd)
+	redir = malloc(sizeof(t_redir));
+	if (!redir)
 		return (NULL);
-	n = count_args(tokens);
-	cmd->argv = fill_argv(tokens, n);
-	if (!cmd->argv)
+	redir->type = type;
+	redir->target = ft_strdup(target);
+	if (!redir->target)
 	{
-		cmd_list_free(cmd);
+		free(redir);
 		return (NULL);
 	}
-	if (!attach_redirs(cmd, tokens))
-	{
-		cmd_list_free(cmd);
-		return (NULL);
-	}
-	return (cmd);
+	redir->next = NULL;
+	return (redir);
 }
 
-t_cmd	*parse_tokens(t_token *tokens)
+void	redir_add_back(t_redir **head, t_redir *new)
 {
-	t_cmd	*cmds;
-	t_cmd	*cmd;
+	t_redir	*last;
 
-	cmds = NULL;
-	while (tokens)
+	if (!head || !new)
+		return ;
+	if (!*head)
 	{
-		cmd = build_cmd(tokens);
-		if (!cmd)
-		{
-			cmd_list_free(cmds);
-			return (NULL);
-		}
-		cmd_add_back(&cmds, cmd);
-		tokens = skip_to_next_cmd(tokens);
+		*head = new;
+		return ;
 	}
-	return (cmds);
+	last = *head;
+	while (last->next)
+		last = last->next;
+	last->next = new;
+}
+
+int	attach_redirs(t_cmd *cmd, t_token *token)
+{
+	t_redir	*redir;
+
+	while (token && token->type != T_PIPE)
+	{
+		if (token->type != T_WORD)
+		{
+			if (!token->next)
+				return (0);
+			redir = redir_new(token->type, token->next->value);
+			if (!redir)
+				return (0);
+			redir_add_back(&cmd->redirs, redir);
+		}
+		token = token_advance(token);
+	}
+	return (1);
 }

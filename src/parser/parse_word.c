@@ -12,7 +12,7 @@
 
 #include "../../includes/minishell.h"
 
-static t_token	*advance(t_token *token)
+t_token	*token_advance(t_token *token)
 {
 	if (token->type == T_WORD)
 		return (token->next);
@@ -45,7 +45,7 @@ int	count_args(t_token *token)
 	{
 		if (token->type == T_WORD)
 			n++;
-		token = advance(token);
+		token = token_advance(token);
 	}
 	return (n);
 }
@@ -68,7 +68,7 @@ char	**fill_argv(t_token *token, int n)
 				return (free_partial(argv, i));
 			i++;
 		}
-		token = advance(token);
+		token = token_advance(token);
 	}
 	argv[i] = NULL;
 	return (argv);

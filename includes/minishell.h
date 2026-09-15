@@ -141,6 +141,10 @@ void			cmd_add_back(t_cmd **head, t_cmd *new);
 int				count_args(t_token *token);
 char			**fill_argv(t_token *token, int n);
 t_token			*skip_to_next_cmd(t_token *token);
+t_token			*token_advance(t_token *token);
+t_redir			*redir_new(t_token_type type, char *target);
+void			redir_add_back(t_redir **head, t_redir *new);
+int				attach_redirs(t_cmd *cmd, t_token *token);
 
 /*lexer stuff*/
 void			token_add_back(t_token **head, t_token *new);

@@ -33,10 +33,7 @@ cc -Wall -Wextra -Werror \
 	src/parser/cmd_list_utils.c \
 	src/parser/parse_word.c \
 	src/parser/parse_pipe.c \
-	src/parser/parse_redir_in.c \
-	src/parser/parse_redir_out.c \
-	src/parser/parse_append.c \
-	src/parser/parse_heredoc.c \
+	src/parser/parse_redirs.c \
 	libft/libft.a \
 	-o "$P_BIN"
 
