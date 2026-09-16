@@ -129,6 +129,7 @@ int					apply_redirs(t_redir *redirs);
 /*builtins*/
 int					bi_env(t_env *env);
 int					bi_pwd(void);
+int					bi_echo(char **argv);
 
 /*utils*/
 int					print_error(char *cmd, char *arg, char *msg);
