@@ -70,6 +70,7 @@ cc -Wall -Wextra -Werror \
 	src/lexer/lex_token_list.c \
 	src/lexer/lex_token_list_free.c \
 	src/utils/ut_cleanup.c \
+	src/parser/cmd_list_free.c \
 	libft/libft.a \
 	-o "$FREE_TEST_BIN"
 

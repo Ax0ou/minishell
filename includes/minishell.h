@@ -26,6 +26,7 @@
 # include <dirent.h>
 # include <termios.h>
 # include <sys/ioctl.h>
+# include <limits.h>
 # include <readline/readline.h>
 # include <readline/history.h>
 
@@ -130,9 +131,11 @@ int					apply_redirs(t_redir *redirs);
 int					bi_env(t_env *env);
 int					bi_pwd(void);
 int					bi_echo(char **argv);
+int					bi_exit(t_shell *shell, char **argv);
 
 /*utils*/
 int					print_error(char *cmd, char *arg, char *msg);
+int					parse_ll(char *s, long long *out);
 void				shell_free(t_shell *shell);
 
 /*parser*/

@@ -31,6 +31,7 @@ cc -Wall -Wextra -Werror \
 	src/env/env_init.c \
 	src/env/env_access.c \
 	src/utils/ut_cleanup.c \
+	src/parser/cmd_list_free.c \
 	src/lexer/lex_token_list_free.c \
 	libft/libft.a \
 	-o "$PATH_TEST_BIN"

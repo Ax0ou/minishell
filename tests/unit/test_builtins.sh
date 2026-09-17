@@ -15,8 +15,9 @@ SKIP_BIN_CHECK=1
 source tests/lib.sh
 
 E_BIN="/tmp/minishell_echo_test"
+X_BIN="/tmp/minishell_exit_test"
 P_BIN="/tmp/minishell_pwd_test"
-trap 'rm -f "$E_BIN" "$P_BIN"' EXIT
+trap 'rm -f "$E_BIN" "$P_BIN" "$X_BIN"' EXIT
 
 make --no-print-directory -C libft >/dev/null
 cc -Wall -Wextra -Werror \
@@ -110,5 +111,81 @@ if [ -x "$P_BIN" ]; then
 	assert_eq "pwd affiche le dossier courant" "$(pwd)" "$(cd "$(pwd)" && "$P_BIN")"
 	assert_eq "pwd depuis /tmp" "$(cd /tmp && pwd -P)" "$(cd /tmp && "$P_BIN")"
 fi
+
+echo ""
+echo "═══ D. exit (issue #10) ═══"
+
+cc -Wall -Wextra -Werror \
+	tests/unit/exit_runner.c \
+	src/builtins/bi_exit.c \
+	src/utils/ut_str.c \
+	src/utils/ut_cleanup.c \
+	src/utils/ut_error.c \
+	src/lexer/lex_token_list_free.c \
+	src/parser/cmd_list_free.c \
+	libft/libft.a \
+	-o "$X_BIN"
+
+# code de sortie de notre exit
+ex() { local c; "$X_BIN" "$@" >/dev/null 2>&1 && c=0 || c=$?; echo "$c"; }
+
+# message sur stderr de notre exit
+ex_err() { "$X_BIN" "$@" 2>&1 >/dev/null || true; }
+
+# code de sortie du exit builtin de bash
+bx() { local c; bash -c 'exit "$@"' _ "$@" 2>/dev/null && c=0 || c=$?; echo "$c"; }
+
+echo "  -- codes de sortie, valeurs attendues --"
+
+assert_eq "sans argument, reprend last_exit (7)"  "7"   "$(ex)"
+assert_eq "exit 42"                               "42"  "$(ex 42)"
+assert_eq "exit 0"                                "0"   "$(ex 0)"
+assert_eq "exit 255"                              "255" "$(ex 255)"
+assert_eq "exit 256 -> 0"                         "0"   "$(ex 256)"
+assert_eq "exit 300 -> 44"                        "44"  "$(ex 300)"
+assert_eq "exit -1 -> 255"                        "255" "$(ex -1)"
+assert_eq "exit -300 -> 212"                      "212" "$(ex -300)"
+assert_eq "exit +42 -> 42"                        "42"  "$(ex +42)"
+assert_eq "espaces autour du nombre"              "42"  "$(ex "  42  ")"
+assert_eq "exit abc -> code 2"                    "2"   "$(ex abc)"
+assert_eq "exit 42abc -> code 2"                  "2"   "$(ex 42abc)"
+assert_eq "exit vide -> code 2"                   "2"   "$(ex "")"
+assert_eq "exit tiret seul -> code 2"             "2"   "$(ex -)"
+assert_eq "depassement -> code 2"                 "2"   "$(ex 99999999999999999999)"
+assert_eq "exit 1 2 -> ne sort pas, retourne 1"   "1"   "$(ex 1 2)"
+
+echo "  -- messages sur stderr --"
+
+assert_eq "message argument non numerique" \
+"minishell: exit: abc: numeric argument required" "$(ex_err abc)"
+
+assert_eq "message trop d'arguments" \
+"minishell: exit: too many arguments" "$(ex_err 1 2)"
+
+assert_eq "aucun message quand tout va bien" "" "$(ex_err 42)"
+
+echo "  -- comparaison des codes avec bash --"
+
+cmp_exit() {
+	local name="$1"
+	shift
+	assert_eq "$name" "$(bx "$@")" "$(ex "$@")"
+}
+
+cmp_exit "vs bash : 42"          42
+cmp_exit "vs bash : 0"           0
+cmp_exit "vs bash : 255"         255
+cmp_exit "vs bash : 256"         256
+cmp_exit "vs bash : 300"         300
+cmp_exit "vs bash : abc"         abc
+cmp_exit "vs bash : 42abc"       42abc
+cmp_exit "vs bash : chaine vide" ""
+cmp_exit "vs bash : depassement" 99999999999999999999
+cmp_exit "vs bash : 1 2"         1 2
+cmp_exit "vs bash : abc def"     abc def
+cmp_exit "vs bash : 1 abc"       1 abc
+cmp_exit "vs bash : abc 1"       abc 1
+cmp_exit "vs bash : -1"          -1
+cmp_exit "vs bash : -300"        -300
 
 summary

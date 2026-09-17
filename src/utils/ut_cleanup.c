@@ -19,5 +19,6 @@ void	shell_free(t_shell *shell)
 	if (shell->line)
 		free(shell->line);
 	token_list_free(shell->tokens);
+	cmd_list_free(shell->cmds);
 	env_free(shell->env);
 }
