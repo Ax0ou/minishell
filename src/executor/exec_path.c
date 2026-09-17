@@ -24,7 +24,7 @@ static int	resolve_in_path(t_env *env, char *name, char **out)
 	return (RESOLVE_CNF);
 }
 
-t_resolve_status	resolve_path(t_env *env, char *name, char **out_path)
+t_path_status	resolve_path(t_env *env, char *name, char **out_path)
 {
 	int	status;
 
