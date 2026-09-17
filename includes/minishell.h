@@ -123,6 +123,7 @@ int					handle_candidate(char *dir, char *name, char **out);
 void				exec_single(t_shell *shell, t_cmd *cmd);
 void				exec_child(char *path, t_cmd *cmd, char **envp);
 int					exec_wait(pid_t pid);
+void				exec_run(t_shell *shell);
 
 /*redirections*/
 int					apply_redirs(t_redir *redirs);
@@ -138,9 +139,13 @@ int					bi_cd(t_env **env, char **argv);
 int					print_error(char *cmd, char *arg, char *msg);
 int					parse_ll(char *s, long long *out);
 void				shell_free(t_shell *shell);
+void				init_shell(t_shell *shell, char **envp);
+void				run_line(t_shell *shell);
 
 /*parser*/
 t_cmd				*parse_tokens(t_token *tokens);
+int					syntax_check_tokens(t_token *tokens);
+int					syntax_check_line(char *line);
 void				cmd_list_free(t_cmd *cmds);
 t_cmd				*cmd_new(void);
 void				cmd_add_back(t_cmd **head, t_cmd *new);

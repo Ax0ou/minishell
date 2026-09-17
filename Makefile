@@ -48,6 +48,7 @@ SRC = 	src/builtins/bi_cd.c \
 		src/parser/parse_pipe.c \
 		src/parser/parse_redirs.c \
 		src/parser/parse_word.c \
+		src/parser/syntax_check.c \
 		src/redirections/redir_files.c \
 		src/redirections/redir_pipes.c \
 		src/signals/signals.c \
