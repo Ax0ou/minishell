@@ -75,6 +75,7 @@ int	main(void)
 	shell.env = env_init(envp);
 	run_case("simple heredoc (delim=EOF)", &shell, "EOF");
 	run_case("quoted delimiter (raw = \"EOF\")", &shell, "\"EOF\"");
+	run_case("mixed-quote delimiter (raw = E\"O\"F)", &shell, "E\"O\"F");
 	run_case("empty delimiter (stops at blank line)", &shell, "");
 	run_case("unterminated (EOF hit before delimiter)", &shell, "NEVER");
 	env_free(shell.env);

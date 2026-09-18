@@ -43,7 +43,7 @@ static int	collect_one_heredoc(t_redir *redir)
 	char	*path;
 	int		fd;
 
-	delim = strip_delim(redir->target);
+	delim = exp_strip_quotes(redir->target);
 	path = heredoc_tmp_path();
 	if (!delim || !path)
 		return (fail_heredoc(delim, path));

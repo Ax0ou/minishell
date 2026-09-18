@@ -171,7 +171,6 @@ int					attach_redirs(t_cmd *cmd, t_token *token);
 int					collect_heredocs(t_shell *shell);
 void				cleanup_heredocs(t_cmd *cmds);
 char				*heredoc_tmp_path(void);
-char				*strip_delim(char *raw);
 int					read_heredoc_body(char *delim, int fd);
 
 /*expander*/
