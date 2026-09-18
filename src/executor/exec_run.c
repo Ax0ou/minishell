@@ -12,14 +12,14 @@
 
 #include "../../includes/minishell.h"
 
-static int	is_builtin(char *name)
+int	is_builtin(char *name)
 {
 	return (!ft_strncmp(name, "echo", 5) || !ft_strncmp(name, "cd", 3)
 		|| !ft_strncmp(name, "pwd", 4) || !ft_strncmp(name, "env", 4)
 		|| !ft_strncmp(name, "exit", 5));
 }
 
-static int	call_builtin(t_shell *shell, char **argv)
+int	call_builtin(t_shell *shell, char **argv)
 {
 	if (!ft_strncmp(argv[0], "echo", 5))
 		return (bi_echo(argv));
@@ -63,8 +63,7 @@ void	exec_run(t_shell *shell)
 		return ;
 	if (cmd->next)
 	{
-		print_error(NULL, NULL, "pipes not implemented yet (issue #36)");
-		shell->last_exit = 1;
+		exec_pipeline(shell);
 		return ;
 	}
 	if (cmd->argv && cmd->argv[0] && !is_builtin(cmd->argv[0]))
