@@ -16,7 +16,7 @@ int	is_builtin(char *name)
 {
 	return (!ft_strncmp(name, "echo", 5) || !ft_strncmp(name, "cd", 3)
 		|| !ft_strncmp(name, "pwd", 4) || !ft_strncmp(name, "env", 4)
-		|| !ft_strncmp(name, "exit", 5));
+		|| !ft_strncmp(name, "exit", 5) || !ft_strncmp(name, "export", 7));
 }
 
 int	call_builtin(t_shell *shell, char **argv)
@@ -29,6 +29,8 @@ int	call_builtin(t_shell *shell, char **argv)
 		return (bi_env(shell->env));
 	if (!ft_strncmp(argv[0], "cd", 3))
 		return (bi_cd(&shell->env, argv));
+	if (!ft_strncmp(argv[0], "export", 7))
+		return (bi_export(&shell->env, argv));
 	return (bi_exit(shell, argv));
 }
 

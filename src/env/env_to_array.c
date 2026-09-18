@@ -19,7 +19,7 @@ static int	count_exported(t_env *env)
 	count = 0;
 	while (env)
 	{
-		if (env->exported)
+		if (env->exported && env->value)
 			count++;
 		env = env->next;
 	}
@@ -62,7 +62,7 @@ char	**env_to_array(t_env *env)
 	i = 0;
 	while (env)
 	{
-		if (env->exported)
+		if (env->exported && env->value)
 		{
 			array[i] = env_entry(env);
 			if (!array[i])

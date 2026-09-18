@@ -174,6 +174,8 @@ cc -Wall -Wextra -Werror \
 	src/builtins/bi_pwd.c \
 	src/builtins/bi_echo.c \
 	src/builtins/bi_exit.c \
+	src/builtins/bi_export.c \
+	src/builtins/bi_export_utils.c \
 	src/parser/cmd_list_utils.c \
 	src/parser/cmd_list_free.c \
 	src/utils/ut_cleanup.c \

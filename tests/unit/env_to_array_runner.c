@@ -47,6 +47,10 @@ int	main(void)
 	array = env_to_array(env);
 	print_array(array);
 	free_array(array);
+	env_set(&env, "NO_VALUE", NULL, 1);
+	array = env_to_array(env);
+	print_array(array);
+	free_array(array);
 	env_free(env);
 	env = NULL;
 	array = env_to_array(env);
