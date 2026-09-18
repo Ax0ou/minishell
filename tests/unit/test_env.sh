@@ -137,9 +137,14 @@ cc -Wall -Wextra -Werror \
 expected='USER=bomfim
 PATH=/usr/bin:/bin
 count=[2]
+USER=bomfim
+PATH=/usr/bin:/bin
+count=[2]
 count=[0]'
 
 actual=$("$ARRAY_TEST_BIN")
+assert_eq "env_to_array ignore une variable exportee sans valeur (pas de crash)" \
+	"$(echo "$expected" | sed -n '4,6p')" "$(echo "$actual" | sed -n '4,6p')"
 assert_eq "env_to_array — sortie complète" "$expected" "$actual"
 
 if [ "$RUN_VALGRIND" = "1" ]; then
@@ -266,6 +271,82 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 		sed 's/^/    /' "$CD_VALGRIND_LOG"
 		FAIL=$((FAIL+1))
 		FAILED_TESTS+=("bi_cd sans leak Valgrind")
+	fi
+fi
+
+echo "═══ Tests unitaires bi_export — Issue #38 ═══"
+
+EXPORT_TEST_BIN="/tmp/minishell_bi_export_test"
+EXPORT_VALGRIND_LOG="/tmp/minishell_bi_export_valgrind.log"
+EXPORT_STDERR_LOG="/tmp/minishell_bi_export_stderr.log"
+trap 'rm -rf "$CD_FIXTURE_DIR"; rm -f "$ENV_TEST_BIN" "$VALGRIND_LOG" "$ACCESS_TEST_BIN" "$ACCESS_VALGRIND_LOG" "$ARRAY_TEST_BIN" "$ARRAY_VALGRIND_LOG" "$BI_ENV_TEST_BIN" "$BI_ENV_VALGRIND_LOG" "$CD_TEST_BIN" "$CD_VALGRIND_LOG" "$CD_STDERR_LOG" "$EXPORT_TEST_BIN" "$EXPORT_VALGRIND_LOG" "$EXPORT_STDERR_LOG"' EXIT
+
+cc -Wall -Wextra -Werror \
+	tests/unit/bi_export_runner.c \
+	src/builtins/bi_export.c \
+	src/builtins/bi_export_utils.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/utils/ut_cleanup.c \
+	src/utils/ut_error.c \
+	src/lexer/lex_token_list_free.c \
+	src/parser/cmd_list_free.c \
+	libft/libft.a \
+	-o "$EXPORT_TEST_BIN"
+
+expected="export FOO=bar -> ret=[0]
+  FOO -> [bar]
+export BAZ (no value) -> ret=[0]
+  BAZ (should be null) -> [(null)]
+export BAZ=now -> ret=[0]
+  BAZ -> [now]
+export FOO (re-export, no clobber) -> ret=[0]
+  FOO (should still be bar) -> [bar]
+export 1BAD=x (invalid) -> ret=[1]
+export A=1 2BAD B=2 (partial failure) -> ret=[1]
+  A -> [1]
+  B -> [2]
+=== export (listing) ===
+declare -x A=\"1\"
+declare -x B=\"2\"
+declare -x BAZ=\"now\"
+declare -x FOO=\"bar\"
+declare -x USER=\"bomfim\"
+export (no args) -> ret=[0]"
+
+actual=$("$EXPORT_TEST_BIN" 2>"$EXPORT_STDERR_LOG")
+
+assert_eq "export KEY=VAL simple" "$(echo "$expected" | sed -n '1,2p')" "$(echo "$actual" | sed -n '1,2p')"
+assert_eq "export NAME sans valeur : invisible dans env_get" "$(echo "$expected" | sed -n '3,4p')" "$(echo "$actual" | sed -n '3,4p')"
+assert_eq "export NAME=VAL sur une cle deja value-less" "$(echo "$expected" | sed -n '5,6p')" "$(echo "$actual" | sed -n '5,6p')"
+assert_eq "re-export NAME (sans =) n'ecrase pas la valeur existante" "$(echo "$expected" | sed -n '7,8p')" "$(echo "$actual" | sed -n '7,8p')"
+assert_eq "identifiant invalide -> ret=1, pas applique" "$(echo "$expected" | sed -n '9p')" "$(echo "$actual" | sed -n '9p')"
+assert_eq "echec partiel : les valides sont quand meme appliques" "$(echo "$expected" | sed -n '10,12p')" "$(echo "$actual" | sed -n '10,12p')"
+assert_eq "export sans arg : liste triee, format declare -x" "$(echo "$expected" | sed -n '13,19p')" "$(echo "$actual" | sed -n '13,19p')"
+assert_eq "bi_export — sortie complète" "$expected" "$actual"
+assert_eq "message d'erreur : identifiant invalide (1BAD=x)" \
+	"minishell: export: 1BAD=x: not a valid identifier" \
+	"$(sed -n '1p' "$EXPORT_STDERR_LOG")"
+assert_eq "message d'erreur : identifiant invalide (2BAD)" \
+	"minishell: export: 2BAD: not a valid identifier" \
+	"$(sed -n '2p' "$EXPORT_STDERR_LOG")"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$EXPORT_TEST_BIN" >"$EXPORT_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} bi_export sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} bi_export sans leak Valgrind\n"
+		sed 's/^/    /' "$EXPORT_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("bi_export sans leak Valgrind")
 	fi
 fi
 

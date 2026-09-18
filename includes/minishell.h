@@ -123,7 +123,15 @@ int					handle_candidate(char *dir, char *name, char **out);
 void				exec_single(t_shell *shell, t_cmd *cmd);
 void				exec_child(char *path, t_cmd *cmd, char **envp);
 int					exec_wait(pid_t pid);
+int					report_resolve_error(char *name, t_path_status status);
 void				exec_run(t_shell *shell);
+int					is_builtin(char *name);
+int					call_builtin(t_shell *shell, char **argv);
+void				exec_pipeline(t_shell *shell);
+int					count_cmds(t_cmd *cmds);
+void				child_dup_pipes(int prev_read, int p[2], int has_next);
+void				pipe_child_run(t_shell *shell, t_cmd *cmd);
+int					wait_all(pid_t *pids, int n);
 
 /*redirections*/
 int					apply_redirs(t_redir *redirs);
@@ -134,6 +142,10 @@ int					bi_pwd(void);
 int					bi_echo(char **argv);
 int					bi_exit(t_shell *shell, char **argv);
 int					bi_cd(t_env **env, char **argv);
+int					bi_export(t_env **env, char **argv);
+int					export_list(t_env *env);
+int					count_env(t_env *env);
+int					key_lt(char *a, char *b);
 
 /*utils*/
 int					print_error(char *cmd, char *arg, char *msg);

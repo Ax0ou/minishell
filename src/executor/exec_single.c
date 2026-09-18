@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_single.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dbomfim- <dbomfim-@student.42lausanne.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/18 13:10:14 by dbomfim-          #+#    #+#             */
+/*   Updated: 2026/09/18 13:10:15 by dbomfim-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
-static int	report_resolve_error(char *name, t_path_status status)
+int	report_resolve_error(char *name, t_path_status status)
 {
 	if (status == RESOLVE_CNF)
 	{

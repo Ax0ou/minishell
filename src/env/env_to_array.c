@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   env_to_array.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dbomfim- <dbomfim-@student.42lausanne.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/18 13:10:54 by dbomfim-          #+#    #+#             */
+/*   Updated: 2026/09/18 13:10:55 by dbomfim-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/minishell.h"
 
 static int	count_exported(t_env *env)
@@ -7,7 +19,7 @@ static int	count_exported(t_env *env)
 	count = 0;
 	while (env)
 	{
-		if (env->exported)
+		if (env->exported && env->value)
 			count++;
 		env = env->next;
 	}
@@ -50,7 +62,7 @@ char	**env_to_array(t_env *env)
 	i = 0;
 	while (env)
 	{
-		if (env->exported)
+		if (env->exported && env->value)
 		{
 			array[i] = env_entry(env);
 			if (!array[i])

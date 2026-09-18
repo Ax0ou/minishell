@@ -148,4 +148,85 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 	fi
 fi
 
+echo "═══ Tests unitaires exec_pipeline — Issue #36 ═══"
+
+PIPE_TEST_BIN="/tmp/minishell_exec_pipeline_test"
+PIPE_VALGRIND_LOG="/tmp/minishell_exec_pipeline_valgrind.log"
+PIPE_STDERR_LOG="/tmp/minishell_exec_pipeline_stderr.log"
+trap 'rm -rf "$FIXTURE_DIR" "$SINGLE_FIXTURE_DIR"; rm -f "$PATH_TEST_BIN" "$PATH_VALGRIND_LOG" "$SINGLE_TEST_BIN" "$SINGLE_VALGRIND_LOG" "$SINGLE_STDERR_LOG" "$PIPE_TEST_BIN" "$PIPE_VALGRIND_LOG" "$PIPE_STDERR_LOG"' EXIT
+
+cc -Wall -Wextra -Werror \
+	tests/unit/exec_pipeline_runner.c \
+	src/executor/exec_pipeline.c \
+	src/executor/exec_pipeline_utils.c \
+	src/executor/exec_run.c \
+	src/executor/exec_single.c \
+	src/executor/exec_child.c \
+	src/executor/exec_wait.c \
+	src/executor/exec_path.c \
+	src/executor/exec_path_utils.c \
+	src/redirections/redir_files.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/env/env_to_array.c \
+	src/builtins/bi_env.c \
+	src/builtins/bi_cd.c \
+	src/builtins/bi_pwd.c \
+	src/builtins/bi_echo.c \
+	src/builtins/bi_exit.c \
+	src/builtins/bi_export.c \
+	src/builtins/bi_export_utils.c \
+	src/parser/cmd_list_utils.c \
+	src/parser/cmd_list_free.c \
+	src/utils/ut_cleanup.c \
+	src/utils/ut_error.c \
+	src/utils/ut_str.c \
+	src/lexer/lex_token_list_free.c \
+	libft/libft.a \
+	-o "$PIPE_TEST_BIN"
+
+expected="hello
+2-stage passthrough -> last_exit=[0]
+hello world
+3-stage passthrough -> last_exit=[0]
+exit code = LAST stage (cat=0), not first (5) -> last_exit=[0]
+exit code = LAST stage (7) -> last_exit=[7]
+broken middle stage: pipeline still completes -> last_exit=[0]
+done
+cd inside a pipe: forked, no real effect -> last_exit=[0]
+cwd unchanged -> [1]"
+
+actual=$("$PIPE_TEST_BIN" 2>"$PIPE_STDERR_LOG")
+
+assert_eq "pipeline 2 etages : passthrough" "$(echo "$expected" | sed -n '1,2p')" "$(echo "$actual" | sed -n '1,2p')"
+assert_eq "pipeline 3 etages : passthrough" "$(echo "$expected" | sed -n '3,4p')" "$(echo "$actual" | sed -n '3,4p')"
+assert_eq "code retour = dernier maillon (pas le premier)" "$(echo "$expected" | sed -n '5p')" "$(echo "$actual" | sed -n '5p')"
+assert_eq "code retour = dernier maillon (7)" "$(echo "$expected" | sed -n '6p')" "$(echo "$actual" | sed -n '6p')"
+assert_eq "un maillon casse n'empeche pas le reste du pipeline" "$(echo "$expected" | sed -n '7p')" "$(echo "$actual" | sed -n '7p')"
+assert_eq "cd dans un pipe : tourne dans un fork" "$(echo "$expected" | sed -n '8,9p')" "$(echo "$actual" | sed -n '8,9p')"
+assert_eq "cd dans un pipe : cwd du parent inchange" "$(echo "$expected" | sed -n '10p')" "$(echo "$actual" | sed -n '10p')"
+assert_eq "exec_pipeline — sortie complète" "$expected" "$actual"
+assert_eq "message d'erreur du maillon casse" \
+	"minishell: nonexistent_cmd_xyz: command not found" \
+	"$(cat "$PIPE_STDERR_LOG")"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$PIPE_TEST_BIN" >"$PIPE_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} exec_pipeline sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} exec_pipeline sans leak Valgrind\n"
+		sed 's/^/    /' "$PIPE_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("exec_pipeline sans leak Valgrind")
+	fi
+fi
+
 summary
