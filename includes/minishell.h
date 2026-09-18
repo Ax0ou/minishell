@@ -142,6 +142,10 @@ int					bi_pwd(void);
 int					bi_echo(char **argv);
 int					bi_exit(t_shell *shell, char **argv);
 int					bi_cd(t_env **env, char **argv);
+int					bi_export(t_env **env, char **argv);
+int					export_list(t_env *env);
+int					count_env(t_env *env);
+int					key_lt(char *a, char *b);
 
 /*utils*/
 int					print_error(char *cmd, char *arg, char *msg);

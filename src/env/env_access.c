@@ -33,6 +33,27 @@ char	*env_get(t_env *env, char *key)
 	return (node->value);
 }
 
+static t_env	*create_node(char *key, char *value, int exported)
+{
+	t_env	*node;
+
+	node = malloc(sizeof(t_env));
+	if (!node)
+		return (NULL);
+	node->next = NULL;
+	node->key = ft_strdup(key);
+	node->value = NULL;
+	if (value)
+		node->value = ft_strdup(value);
+	node->exported = exported;
+	if (!node->key || (value && !node->value))
+	{
+		env_free(node);
+		return (NULL);
+	}
+	return (node);
+}
+
 int	env_set(t_env **env, char *key, char *value, int exported)
 {
 	t_env	*node;
@@ -40,23 +61,17 @@ int	env_set(t_env **env, char *key, char *value, int exported)
 	node = env_find(*env, key);
 	if (node)
 	{
-		free(node->value);
-		node->value = ft_strdup(value);
+		if (value)
+		{
+			free(node->value);
+			node->value = ft_strdup(value);
+		}
 		node->exported = (node->exported || exported);
-		return (node->value == NULL);
+		return (value && !node->value);
 	}
-	node = malloc(sizeof(t_env));
+	node = create_node(key, value, exported);
 	if (!node)
 		return (1);
-	node->next = NULL;
-	node->key = ft_strdup(key);
-	node->value = ft_strdup(value);
-	node->exported = exported;
-	if (!node->key || !node->value)
-	{
-		env_free(node);
-		return (1);
-	}
 	node->next = *env;
 	*env = node;
 	return (0);
