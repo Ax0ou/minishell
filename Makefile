@@ -46,6 +46,8 @@ SRC = 	src/builtins/bi_cd.c \
 		src/parser/parse_args_default.c \
 		src/parser/parse_args_echo.c \
 		src/parser/parse_args_echo_utils.c \
+		src/parser/parse_heredoc.c \
+		src/parser/parse_heredoc_utils.c \
 		src/parser/parse_input.c \
 		src/parser/parse_pipe.c \
 		src/parser/parse_redirs.c \

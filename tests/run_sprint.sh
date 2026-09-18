@@ -38,6 +38,7 @@ case "$SPRINT" in
     3)
         echo "═══ Sprint 3 — Expander + Pipes + Heredoc ═══"
         run_test tests/unit/test_expander.sh
+        run_test tests/unit/test_heredoc.sh
         run_test tests/integration/test_pipes.sh
         run_test tests/integration/test_heredoc.sh
         ;;
