@@ -157,6 +157,10 @@ t_redir				*redir_new(t_token_type type, char *target);
 void				redir_add_back(t_redir **head, t_redir *new);
 int					attach_redirs(t_cmd *cmd, t_token *token);
 
+/*expander*/
+char				*exp_strip_quotes(char *value);
+int					exp_strip_tokens(t_token *tokens);
+
 /*lexer stuff*/
 void				token_add_back(t_token **head, t_token *new);
 t_token				*new_token(t_token_type type, char *value);

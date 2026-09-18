@@ -32,3 +32,6 @@ core.*
 
 # OS
 Thumbs.db
+
+# Sorties generees par Claude (fiches, rapports) - hors versioning
+Claude outputs/
