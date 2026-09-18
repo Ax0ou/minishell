@@ -28,6 +28,17 @@ static void	fail_syntax(t_shell *shell)
 	shell->tokens = NULL;
 }
 
+static void	run_cmds(t_shell *shell)
+{
+	if (!collect_heredocs(shell))
+		shell->last_exit = 1;
+	else
+		exec_run(shell);
+	cleanup_heredocs(shell->cmds);
+	cmd_list_free(shell->cmds);
+	shell->cmds = NULL;
+}
+
 void	run_line(t_shell *shell)
 {
 	if (syntax_check_line(shell->line))
@@ -48,7 +59,5 @@ void	run_line(t_shell *shell)
 	shell->tokens = NULL;
 	if (!shell->cmds)
 		return ;
-	exec_run(shell);
-	cmd_list_free(shell->cmds);
-	shell->cmds = NULL;
+	run_cmds(shell);
 }
