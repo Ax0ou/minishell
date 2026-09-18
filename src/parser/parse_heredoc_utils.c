@@ -51,17 +51,6 @@ char	*heredoc_tmp_path(void)
 	}
 }
 
-char	*strip_delim(char *raw)
-{
-	int	len;
-
-	len = ft_strlen(raw);
-	if (len >= 2 && ((raw[0] == '"' && raw[len - 1] == '"')
-			|| (raw[0] == '\'' && raw[len - 1] == '\'')))
-		return (ft_substr(raw, 1, len - 2));
-	return (ft_strdup(raw));
-}
-
 static char	*read_line_raw(int fd)
 {
 	static char	buf[4096];

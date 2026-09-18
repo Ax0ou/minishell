@@ -24,6 +24,7 @@ cc -Wall -Wextra -Werror \
 	src/parser/parse_heredoc_utils.c \
 	src/parser/cmd_list_utils.c \
 	src/parser/cmd_list_free.c \
+	src/expander/exp_quotes_strip.c \
 	src/env/env_init.c \
 	src/utils/ut_cleanup.c \
 	src/utils/ut_error.c \
@@ -36,6 +37,8 @@ world
 EOF
 quoted content
 EOF
+mixed content
+EOF
 abc
 
 partial'
@@ -47,6 +50,10 @@ world
   after cleanup, file exists -> [0]
 > > quoted delimiter (raw = "EOF") -> ret=[1]
   content -> [quoted content
+]
+  after cleanup, file exists -> [0]
+> > mixed-quote delimiter (raw = E"O"F) -> ret=[1]
+  content -> [mixed content
 ]
   after cleanup, file exists -> [0]
 > > empty delimiter (stops at blank line) -> ret=[1]
@@ -64,13 +71,16 @@ assert_eq "heredoc simple : lit jusqu'au delimiteur exact" \
 	"$(echo "$expected" | sed -n '1,5p')" "$(echo "$actual" | sed -n '1,5p')"
 assert_eq "delimiteur quote : quotes retirees pour la comparaison" \
 	"$(echo "$expected" | sed -n '6,9p')" "$(echo "$actual" | sed -n '6,9p')"
-assert_eq "delimiteur vide : s'arrete a la premiere ligne vide" \
+assert_eq "delimiteur avec quotes melangees (E\"O\"F) : #34 exp_strip_quotes" \
 	"$(echo "$expected" | sed -n '10,13p')" "$(echo "$actual" | sed -n '10,13p')"
-assert_eq "EOF sans delimiteur : execute quand meme avec le contenu lu" \
+assert_eq "delimiteur vide : s'arrete a la premiere ligne vide" \
 	"$(echo "$expected" | sed -n '14,17p')" "$(echo "$actual" | sed -n '14,17p')"
+assert_eq "EOF sans delimiteur : execute quand meme avec le contenu lu" \
+	"$(echo "$expected" | sed -n '18,21p')" "$(echo "$actual" | sed -n '18,21p')"
 assert_eq "heredoc — sortie complète" "$expected" "$actual"
-assert_eq "tmpfile toujours unlink apres usage (4 cas)" \
+assert_eq "tmpfile toujours unlink apres usage (5 cas)" \
 	"0
+0
 0
 0
 0" "$(echo "$actual" | sed -n 's/.*file exists -> \[\(.\)\]/\1/p')"
