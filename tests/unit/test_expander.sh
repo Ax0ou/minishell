@@ -11,7 +11,8 @@ source tests/lib.sh
 
 LEN_BIN="/tmp/minishell_var_len_test"
 VAL_BIN="/tmp/minishell_var_value_test"
-trap 'rm -f "$LEN_BIN" "$VAL_BIN"' EXIT
+REP_BIN="/tmp/minishell_var_replace_test"
+trap 'rm -f "$LEN_BIN" "$VAL_BIN" "$REP_BIN"' EXIT
 
 make --no-print-directory -C libft >/dev/null
 cc -Wall -Wextra -Werror \
@@ -33,8 +34,23 @@ cc -Wall -Wextra -Werror \
 	libft/libft.a \
 	-o "$VAL_BIN"
 
+cc -Wall -Wextra -Werror \
+	tests/unit/exp_var_replace_runner.c \
+	src/expander/exp_var_replace.c \
+	src/expander/exp_var_value.c \
+	src/expander/exp_var_identify.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/utils/ut_cleanup.c \
+	src/utils/ut_error.c \
+	src/parser/cmd_list_free.c \
+	src/lexer/lex_token_list_free.c \
+	libft/libft.a \
+	-o "$REP_BIN"
+
 vlen() { "$LEN_BIN" "$1"; }
 vval() { "$VAL_BIN" "$1" "${2:-0}"; }
+vrep() { "$REP_BIN" "$1" "${2:-0}"; }
 
 echo "═══ A. exp_var_len : ou s'arrete un nom de variable ═══"
 echo "  (l'argument est ce qui suit le \$)"
@@ -85,5 +101,35 @@ assert_eq "\$? apres une erreur"                   "[1]"            "$(vval '?' 
 assert_eq "\$? apres command not found"            "[127]"          "$(vval '?' 127)"
 assert_eq "\$? apres ctrl-C"                       "[130]"          "$(vval '?' 130)"
 assert_eq "\$?abc : seul le ? est lu"              "[2]"            "$(vval '?abc' 2)"
+
+echo ""
+echo "═══ F. exp_var_replace : la chaine complete ═══"
+echo "  (les quotes sont conservees ici, le strip les retire apres)"
+
+assert_eq "une variable dans une phrase"        '[salut alvrd]'          "$(vrep 'salut $USER')"
+assert_eq "deux variables collees"              '[alvrd/Users/alvrd]'    "$(vrep '$USER$HOME')"
+assert_eq "le - arrete le nom"                  '[alvrd-test]'           "$(vrep '$USER-test')"
+assert_eq "variable inexistante au milieu"      '[a-b]'                  "$(vrep 'a$NOPE-b')"
+assert_eq "variable vide"                       '[]'                     "$(vrep '$EMPTY')"
+assert_eq "\$1abc"                              '[abc]'                  "$(vrep '$1abc')"
+assert_eq "sans dollar, inchange"               '[rien]'                 "$(vrep 'rien')"
+assert_eq "chaine vide"                         '[]'                     "$(vrep '')"
+
+echo ""
+echo "═══ G. Les quotes decident de l'expansion ═══"
+
+assert_eq "entre doubles : etendu"              '["alvrd"]'              "$(vrep '"$USER"')"
+assert_eq "entre simples : PAS etendu"          "['\$USER']"             "$(vrep "'\$USER'")"
+assert_eq "simples dans doubles : etendu"       "[\"'alvrd'\"]"          "$(vrep "\"'\$USER'\"")"
+assert_eq "doubles dans simples : PAS etendu"   "['\"\$USER\"']"         "$(vrep "'\"\$USER\"'")"
+assert_eq "les deux dans le meme mot"           "[x'\$USER'y\"alvrd\"]"  "$(vrep "x'\$USER'y\"\$USER\"")"
+
+echo ""
+echo "═══ H. Le \$ qui n'est pas une variable ═══"
+
+assert_eq "\$ seul"                             '[$]'                    "$(vrep '$')"
+assert_eq "\$ seul entre doubles"               '["$"]'                  "$(vrep '"$"')"
+assert_eq "\$? vaut last_exit"                  '[42]'                   "$(vrep '$?' 42)"
+assert_eq "\$?\$? deux fois"                    '[4242]'                 "$(vrep '$?$?' 42)"
 
 summary

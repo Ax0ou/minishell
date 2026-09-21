@@ -177,6 +177,7 @@ int					read_heredoc_body(char *delim, int fd);
 int					exp_run(t_shell *shell);
 int					exp_var_len(char *s);
 char				*exp_var_value(t_shell *shell, char *s, int len);
+char				*exp_var_replace(t_shell *shell, char *str);
 char				*exp_strip_quotes(char *value);
 int					exp_strip_tokens(t_token *tokens);
 
