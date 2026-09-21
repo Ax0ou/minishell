@@ -212,7 +212,14 @@ fi
 echo "═══ Tests unitaires bi_cd — Issue #26 ═══"
 
 CD_FIXTURE_DIR=$(mktemp -d /tmp/minishell_bi_cd_fixture.XXXXXX)
-CD_FIXTURE_DIR=$(cd "$CD_FIXTURE_DIR" && pwd)
+# pwd -P (pas pwd) : le chemin PHYSIQUE, symlinks resolus. getcwd() (utilise
+# par bi_cd/le runner C) renvoie TOUJOURS le chemin physique ; sur macOS
+# /tmp est un symlink vers /private/tmp, donc un simple `pwd` (logique)
+# laisserait CD_FIXTURE_DIR desynchronise de ce que getcwd() rapporte
+# reellement, faisant echouer le test a tort. Sur Linux/WSL /tmp n'est pas
+# un symlink donc `pwd` et `pwd -P` coincident deja — ce correctif est donc
+# sans effet ici mais necessaire pour la portabilite macOS.
+CD_FIXTURE_DIR=$(cd "$CD_FIXTURE_DIR" && pwd -P)
 CD_TEST_BIN="/tmp/minishell_bi_cd_test"
 CD_VALGRIND_LOG="/tmp/minishell_bi_cd_valgrind.log"
 CD_STDERR_LOG="/tmp/minishell_bi_cd_stderr.log"
