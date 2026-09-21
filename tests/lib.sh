@@ -26,9 +26,17 @@ fi
 
 # ─── Exécution ───────────────────────────────────────────────────────────
 
+# readline() imprime le prompt (et, en pipe, l'echo la ligne lue) meme
+# quand stdin n'est pas un tty. On filtre ce bruit ("minishell$ ...") pour
+# ne garder que la vraie sortie de la commande, sinon toute comparaison
+# avec bash (qui n'imprime pas de prompt en non-interactif) echoue a tort.
+_strip_prompt() {
+    grep -v '^minishell\$ '
+}
+
 # Pipe une commande dans minishell, retourne stdout
 run_shell() {
-    echo "$1" | $SHELL_BIN 2>/dev/null
+    echo "$1" | $SHELL_BIN 2>/dev/null | _strip_prompt
 }
 
 # Idem mais capture aussi stderr + retourne l'exit code
@@ -36,6 +44,7 @@ run_shell_full() {
     local out
     out=$(echo "$1" | $SHELL_BIN 2>&1)
     local code=$?
+    out=$(echo "$out" | _strip_prompt)
     echo "$out"
     return $code
 }
@@ -67,7 +76,7 @@ assert_eq() {
 assert_exit() {
     local name="$1" expected_code="$2" cmd="$3"
     local out
-    out=$(printf '%s\necho $?\n' "$cmd" | $SHELL_BIN 2>/dev/null)
+    out=$(printf '%s\necho $?\n' "$cmd" | $SHELL_BIN 2>/dev/null | _strip_prompt)
     local actual_code
     actual_code=$(echo "$out" | tail -1)
     if [ "$expected_code" = "$actual_code" ]; then
