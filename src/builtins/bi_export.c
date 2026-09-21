@@ -35,7 +35,7 @@ int	key_lt(char *a, char *b)
 	return ((unsigned char)*a < (unsigned char)*b);
 }
 
-static int	valid_identifier(char *s)
+int	valid_identifier(char *s, int stop_at_eq)
 {
 	int	i;
 
@@ -44,7 +44,7 @@ static int	valid_identifier(char *s)
 	if (!ft_isalpha(s[0]) && s[0] != '_')
 		return (0);
 	i = 1;
-	while (s[i] && s[i] != '=')
+	while (s[i] && (!stop_at_eq || s[i] != '='))
 	{
 		if (!ft_isalnum(s[i]) && s[i] != '_')
 			return (0);
@@ -58,7 +58,7 @@ static int	assign_one(t_env **env, char *arg)
 	char	*eq;
 	char	*key;
 
-	if (!valid_identifier(arg))
+	if (!valid_identifier(arg, 1))
 		return (print_error("export", arg, "not a valid identifier"));
 	eq = ft_strchr(arg, '=');
 	if (!eq)

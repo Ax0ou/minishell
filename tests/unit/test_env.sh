@@ -350,4 +350,73 @@ if [ "$RUN_VALGRIND" = "1" ]; then
 	fi
 fi
 
+echo "═══ Tests unitaires bi_unset — Issue #80 ═══"
+
+UNSET_TEST_BIN="/tmp/minishell_bi_unset_test"
+UNSET_VALGRIND_LOG="/tmp/minishell_bi_unset_valgrind.log"
+UNSET_STDERR_LOG="/tmp/minishell_bi_unset_stderr.log"
+trap 'rm -rf "$CD_FIXTURE_DIR"; rm -f "$ENV_TEST_BIN" "$VALGRIND_LOG" "$ACCESS_TEST_BIN" "$ACCESS_VALGRIND_LOG" "$ARRAY_TEST_BIN" "$ARRAY_VALGRIND_LOG" "$BI_ENV_TEST_BIN" "$BI_ENV_VALGRIND_LOG" "$CD_TEST_BIN" "$CD_VALGRIND_LOG" "$CD_STDERR_LOG" "$EXPORT_TEST_BIN" "$EXPORT_VALGRIND_LOG" "$EXPORT_STDERR_LOG" "$UNSET_TEST_BIN" "$UNSET_VALGRIND_LOG" "$UNSET_STDERR_LOG"' EXIT
+
+cc -Wall -Wextra -Werror \
+	tests/unit/bi_unset_runner.c \
+	src/builtins/bi_unset.c \
+	src/builtins/bi_export.c \
+	src/builtins/bi_export_utils.c \
+	src/env/env_init.c \
+	src/env/env_access.c \
+	src/utils/ut_cleanup.c \
+	src/utils/ut_error.c \
+	src/lexer/lex_token_list_free.c \
+	src/parser/cmd_list_free.c \
+	libft/libft.a \
+	-o "$UNSET_TEST_BIN"
+
+expected='unset FOO -> ret=[0]
+  FOO -> [(null)]
+unset GHOST (absent) -> ret=[0]
+unset (no args) -> ret=[0]
+unset 1BAD (invalid) -> ret=[1]
+unset A=x (whole token invalid, not partial) -> ret=[1]
+  A (should be untouched) -> [1]
+unset A 1BAD B (partial failure) -> ret=[1]
+  A -> [(null)]
+  B -> [(null)]'
+
+actual=$("$UNSET_TEST_BIN" 2>"$UNSET_STDERR_LOG")
+
+assert_eq "unset retire une cle existante" "$(echo "$expected" | sed -n '1,2p')" "$(echo "$actual" | sed -n '1,2p')"
+assert_eq "unset sur cle absente ne crash pas, ret=0" "$(echo "$expected" | sed -n '3p')" "$(echo "$actual" | sed -n '3p')"
+assert_eq "unset sans arg : succes, rien a faire" "$(echo "$expected" | sed -n '4p')" "$(echo "$actual" | sed -n '4p')"
+assert_eq "unset 1BAD : identifiant invalide, ret=1" "$(echo "$expected" | sed -n '5p')" "$(echo "$actual" | sed -n '5p')"
+assert_eq "unset A=x : tout le token rejete, pas d'extraction partielle" \
+	"$(echo "$expected" | sed -n '6,7p')" "$(echo "$actual" | sed -n '6,7p')"
+assert_eq "unset A 1BAD B : les valides sont quand meme retires" \
+	"$(echo "$expected" | sed -n '8,10p')" "$(echo "$actual" | sed -n '8,10p')"
+assert_eq "bi_unset — sortie complète" "$expected" "$actual"
+assert_eq "message d'erreur : identifiant invalide (1BAD)" \
+	"minishell: unset: 1BAD: not a valid identifier" \
+	"$(sed -n '1p' "$UNSET_STDERR_LOG")"
+assert_eq "message d'erreur : A=x rejete en entier (pas 'x' ou '=x')" \
+	"minishell: unset: A=x: not a valid identifier" \
+	"$(sed -n '2p' "$UNSET_STDERR_LOG")"
+
+if [ "$RUN_VALGRIND" = "1" ]; then
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "  ${C_RED}✗${C_RESET} valgrind disponible\n"
+		printf "    valgrind introuvable dans le PATH\n"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("valgrind disponible")
+	elif valgrind --leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all --error-exitcode=42 \
+		"$UNSET_TEST_BIN" >"$UNSET_VALGRIND_LOG" 2>&1; then
+		printf "  ${C_GREEN}✓${C_RESET} bi_unset sans leak Valgrind\n"
+		PASS=$((PASS+1))
+	else
+		printf "  ${C_RED}✗${C_RESET} bi_unset sans leak Valgrind\n"
+		sed 's/^/    /' "$UNSET_VALGRIND_LOG"
+		FAIL=$((FAIL+1))
+		FAILED_TESTS+=("bi_unset sans leak Valgrind")
+	fi
+fi
+
 summary
