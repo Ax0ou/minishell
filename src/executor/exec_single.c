@@ -33,8 +33,9 @@ int	report_resolve_error(char *name, t_path_status status)
 	return (126);
 }
 
-static void	cleanup(char *path, char **envp)
+static void	cleanup(t_shell *shell, char *path, char **envp)
 {
+	report_signal_death(shell->last_exit);
 	free(path);
 	free_split(envp);
 }
@@ -53,16 +54,17 @@ void	exec_single(t_shell *shell, t_cmd *cmd)
 		return ;
 	}
 	envp = env_to_array(shell->env);
+	setup_exec_signals();
 	pid = fork();
 	if (pid < 0)
 	{
 		print_error("fork", NULL, strerror(errno));
 		shell->last_exit = 1;
-		cleanup(path, envp);
+		cleanup(shell, path, envp);
 		return ;
 	}
 	if (pid == 0)
 		exec_child(path, cmd, envp);
 	shell->last_exit = exec_wait(pid);
-	cleanup(path, envp);
+	cleanup(shell, path, envp);
 }

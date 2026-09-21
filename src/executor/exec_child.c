@@ -14,6 +14,7 @@
 
 void	exec_child(char *path, t_cmd *cmd, char **envp)
 {
+	reset_child_signals();
 	if (apply_redirs(cmd->redirs))
 		exit(1);
 	execve(path, cmd->argv, envp);

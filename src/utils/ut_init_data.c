@@ -31,7 +31,15 @@ static void	fail_line(t_shell *shell, int code)
 static void	run_cmds(t_shell *shell)
 {
 	if (!collect_heredocs(shell))
-		shell->last_exit = 1;
+	{
+		if (g_signal == SIGINT)
+		{
+			shell->last_exit = 130;
+			g_signal = 0;
+		}
+		else
+			shell->last_exit = 1;
+	}
 	else
 		exec_run(shell);
 	cleanup_heredocs(shell->cmds);

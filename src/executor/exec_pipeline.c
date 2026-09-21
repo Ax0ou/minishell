@@ -37,6 +37,19 @@ static pid_t	spawn_stage(t_shell *shell, t_cmd *cmd, int prev_read,
 	return (pid);
 }
 
+static pid_t	*alloc_pids(t_shell *shell, int n)
+{
+	pid_t	*pids;
+
+	pids = malloc(sizeof(pid_t) * n);
+	if (!pids)
+	{
+		print_error(NULL, NULL, strerror(errno));
+		shell->last_exit = 1;
+	}
+	return (pids);
+}
+
 void	exec_pipeline(t_shell *shell)
 {
 	t_cmd	*cmd;
@@ -46,13 +59,10 @@ void	exec_pipeline(t_shell *shell)
 	int		prev_read;
 
 	n = count_cmds(shell->cmds);
-	pids = malloc(sizeof(pid_t) * n);
+	pids = alloc_pids(shell, n);
 	if (!pids)
-	{
-		print_error(NULL, NULL, strerror(errno));
-		shell->last_exit = 1;
 		return ;
-	}
+	setup_exec_signals();
 	cmd = shell->cmds;
 	prev_read = -1;
 	i = 0;
