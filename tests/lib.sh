@@ -31,7 +31,10 @@ fi
 # ne garder que la vraie sortie de la commande, sinon toute comparaison
 # avec bash (qui n'imprime pas de prompt en non-interactif) echoue a tort.
 _strip_prompt() {
-    grep -v '^minishell\$ '
+    # grep -v sort en erreur (1) s'il ne reste aucune ligne (ex: une
+    # commande dont toute la sortie est redirigee vers un fichier). Sous
+    # 'set -e' cote appelant, ca tuerait le script a tort : on avale.
+    grep -v '^minishell\$ ' || true
 }
 
 # Pipe une commande dans minishell, retourne stdout
