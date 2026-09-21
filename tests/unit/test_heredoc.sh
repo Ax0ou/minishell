@@ -22,6 +22,8 @@ cc -Wall -Wextra -Werror \
 	tests/unit/heredoc_runner.c \
 	src/parser/parse_heredoc.c \
 	src/parser/parse_heredoc_utils.c \
+	src/signals/signals.c \
+	src/signals/signals_heredoc.c \
 	src/parser/cmd_list_utils.c \
 	src/parser/cmd_list_free.c \
 	src/expander/exp_quotes_strip.c \
@@ -29,7 +31,7 @@ cc -Wall -Wextra -Werror \
 	src/utils/ut_cleanup.c \
 	src/utils/ut_error.c \
 	src/lexer/lex_token_list_free.c \
-	libft/libft.a \
+	libft/libft.a -lreadline \
 	-o "$HD_TEST_BIN"
 
 HD_STDIN='hello

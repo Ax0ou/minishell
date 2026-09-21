@@ -12,6 +12,15 @@
 
 #include "../includes/minishell.h"
 
+static void	check_prompt_signal(t_shell *shell)
+{
+	if (g_signal == SIGINT)
+	{
+		shell->last_exit = 130;
+		g_signal = 0;
+	}
+}
+
 int	main(int argc, char **argv, char **envp)
 {
 	t_shell	shell;
@@ -19,9 +28,12 @@ int	main(int argc, char **argv, char **envp)
 	(void)argc;
 	(void)argv;
 	init_shell(&shell, envp);
+	rl_catch_signals = 0;
 	while (1)
 	{
+		setup_prompt_signals();
 		shell.line = readline("minishell$ ");
+		check_prompt_signal(&shell);
 		if (!shell.line)
 			break ;
 		if (*shell.line)

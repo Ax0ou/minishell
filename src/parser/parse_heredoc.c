@@ -42,6 +42,7 @@ static int	collect_one_heredoc(t_redir *redir)
 	char	*delim;
 	char	*path;
 	int		fd;
+	int		found;
 
 	delim = exp_strip_quotes(redir->target);
 	path = heredoc_tmp_path();
@@ -50,13 +51,14 @@ static int	collect_one_heredoc(t_redir *redir)
 	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (fd < 0)
 		return (fail_heredoc(delim, path));
-	if (!read_heredoc_body(delim, fd))
+	found = read_heredoc_body(delim, fd);
+	if (!found && g_signal != SIGINT)
 		warn_eof(delim);
 	close(fd);
 	free(redir->target);
 	redir->target = path;
 	free(delim);
-	return (1);
+	return (found || g_signal != SIGINT);
 }
 
 int	collect_heredocs(t_shell *shell)
@@ -64,6 +66,7 @@ int	collect_heredocs(t_shell *shell)
 	t_cmd	*cmd;
 	t_redir	*redir;
 
+	setup_heredoc_signals();
 	cmd = shell->cmds;
 	while (cmd)
 	{

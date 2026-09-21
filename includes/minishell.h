@@ -108,6 +108,8 @@ typedef struct s_shell
 	t_cmd		*cmds;
 }	t_shell;
 
+extern int			g_signal;
+
 t_env				*env_init(char **envp);
 void				env_free(t_env *env);
 char				*env_get(t_env *env, char *key);
@@ -123,6 +125,7 @@ int					handle_candidate(char *dir, char *name, char **out);
 void				exec_single(t_shell *shell, t_cmd *cmd);
 void				exec_child(char *path, t_cmd *cmd, char **envp);
 int					exec_wait(pid_t pid);
+void				report_signal_death(int code);
 int					report_resolve_error(char *name, t_path_status status);
 void				exec_run(t_shell *shell);
 int					is_builtin(char *name);
@@ -196,5 +199,11 @@ int					lex_in_quote(t_lex *lex);
 int					lex_is_quote_char(char c);
 int					lex_is_operator_char(char c);
 void				lex_handle_quote_char(t_lex *lex, char c);
+
+/*signals*/
+void				setup_prompt_signals(void);
+void				setup_exec_signals(void);
+void				reset_child_signals(void);
+void				setup_heredoc_signals(void);
 
 #endif

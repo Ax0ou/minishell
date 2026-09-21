@@ -73,5 +73,6 @@ int	wait_all(pid_t *pids, int n)
 		code = exec_wait(pids[i]);
 		i++;
 	}
+	report_signal_death(code);
 	return (code);
 }

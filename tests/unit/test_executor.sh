@@ -99,6 +99,7 @@ cc -Wall -Wextra -Werror \
 	tests/unit/exec_single_runner.c \
 	src/executor/exec_single.c \
 	src/executor/exec_child.c \
+	src/signals/signals.c \
 	src/redirections/redir_files.c \
 	src/executor/exec_wait.c \
 	src/executor/exec_path.c \
@@ -111,7 +112,7 @@ cc -Wall -Wextra -Werror \
 	src/utils/ut_cleanup.c \
 	src/utils/ut_error.c \
 	src/lexer/lex_token_list_free.c \
-	libft/libft.a \
+	libft/libft.a -lreadline \
 	-o "$SINGLE_TEST_BIN"
 
 expected="execute + normal exit code -> last_exit=[7]
@@ -162,6 +163,7 @@ cc -Wall -Wextra -Werror \
 	src/executor/exec_run.c \
 	src/executor/exec_single.c \
 	src/executor/exec_child.c \
+	src/signals/signals.c \
 	src/executor/exec_wait.c \
 	src/executor/exec_path.c \
 	src/executor/exec_path_utils.c \
@@ -183,7 +185,7 @@ cc -Wall -Wextra -Werror \
 	src/utils/ut_error.c \
 	src/utils/ut_str.c \
 	src/lexer/lex_token_list_free.c \
-	libft/libft.a \
+	libft/libft.a -lreadline \
 	-o "$PIPE_TEST_BIN"
 
 expected="hello
