@@ -174,6 +174,7 @@ char				*heredoc_tmp_path(void);
 int					read_heredoc_body(char *delim, int fd);
 
 /*expander*/
+int					exp_run(t_shell *shell);
 char				*exp_strip_quotes(char *value);
 int					exp_strip_tokens(t_token *tokens);
 

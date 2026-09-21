@@ -21,9 +21,9 @@ void	init_shell(t_shell *shell, char **envp)
 	shell->cmds = NULL;
 }
 
-static void	fail_syntax(t_shell *shell)
+static void	fail_line(t_shell *shell, int code)
 {
-	shell->last_exit = 2;
+	shell->last_exit = code;
 	token_list_free(shell->tokens);
 	shell->tokens = NULL;
 }
@@ -43,7 +43,7 @@ void	run_line(t_shell *shell)
 {
 	if (syntax_check_line(shell->line))
 	{
-		fail_syntax(shell);
+		fail_line(shell, 2);
 		return ;
 	}
 	shell->tokens = lex_tokenize(shell->line);
@@ -51,7 +51,12 @@ void	run_line(t_shell *shell)
 		return ;
 	if (syntax_check_tokens(shell->tokens))
 	{
-		fail_syntax(shell);
+		fail_line(shell, 2);
+		return ;
+	}
+	if (exp_run(shell))
+	{
+		fail_line(shell, 1);
 		return ;
 	}
 	shell->cmds = parse_tokens(shell->tokens);
