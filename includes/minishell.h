@@ -146,6 +146,8 @@ int					bi_export(t_env **env, char **argv);
 int					export_list(t_env *env);
 int					count_env(t_env *env);
 int					key_lt(char *a, char *b);
+int					valid_identifier(char *s, int stop_at_eq);
+int					bi_unset(t_env **env, char **argv);
 
 /*utils*/
 int					print_error(char *cmd, char *arg, char *msg);
