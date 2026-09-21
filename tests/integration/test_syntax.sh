@@ -21,7 +21,7 @@ make --no-print-directory -C libft >/dev/null
 cc -Wall -Wextra -Werror \
 	tests/integration/shell_runner.c \
 	$(find src -name '*.c' -size +0 ! -name 'main.c') \
-	libft/libft.a \
+	libft/libft.a -lreadline \
 	-o "$MSH"
 
 rm -rf "$SANDBOX" && mkdir -p "$SANDBOX"
