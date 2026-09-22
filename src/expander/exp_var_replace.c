@@ -81,9 +81,11 @@ static int	expand_one(t_shell *shell, char *s, char **res)
 ** Renvoie une nouvelle chaine ou chaque $NOM et $? est remplace par
 ** sa valeur, sauf entre quotes simples. Les quotes sont conservees :
 ** elles seront retirees ensuite par exp_strip_tokens.
+** respect_quotes = 0 pour un contenu de heredoc : les quotes y sont
+** litterales, pas structurelles, donc un ' ne doit pas couper l'expansion.
 ** NULL uniquement si un malloc echoue.
 */
-char	*exp_var_replace(t_shell *shell, char *str)
+char	*exp_var_replace(t_shell *shell, char *str, int respect_quotes)
 {
 	char		*res;
 	t_lex_state	state;
@@ -94,7 +96,8 @@ char	*exp_var_replace(t_shell *shell, char *str)
 	i = 0;
 	while (res && str[i])
 	{
-		update_state(&state, str[i]);
+		if (respect_quotes)
+			update_state(&state, str[i]);
 		if (str[i] == '$' && state != STATE_SQUOTE)
 			i += expand_one(shell, str + i, &res);
 		else

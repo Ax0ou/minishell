@@ -30,6 +30,6 @@ int	bi_exit(t_shell *shell, char **argv)
 		else
 			code = (int)(value & 255);
 	}
-	shell_free(shell);
-	exit(code);
+	shell->want_exit = 1;
+	return (code);
 }

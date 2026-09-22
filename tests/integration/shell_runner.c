@@ -13,6 +13,8 @@ int	main(int argc, char **argv, char **envp)
 		run_line(&shell);
 		free(shell.line);
 		shell.line = NULL;
+		if (shell.want_exit)
+			break ;
 		i++;
 	}
 	i = shell.last_exit;

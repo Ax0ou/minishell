@@ -19,6 +19,7 @@ void	init_shell(t_shell *shell, char **envp)
 	shell->line = NULL;
 	shell->tokens = NULL;
 	shell->cmds = NULL;
+	shell->want_exit = 0;
 }
 
 static void	fail_line(t_shell *shell, int code)

@@ -21,6 +21,16 @@ static void	check_prompt_signal(t_shell *shell)
 	}
 }
 
+static int	check_eof(char *line)
+{
+	if (!line)
+	{
+		ft_putendl_fd("exit", STDOUT_FILENO);
+		return (1);
+	}
+	return (0);
+}
+
 int	main(int argc, char **argv, char **envp)
 {
 	t_shell	shell;
@@ -34,15 +44,16 @@ int	main(int argc, char **argv, char **envp)
 		setup_prompt_signals();
 		shell.line = readline("minishell$ ");
 		check_prompt_signal(&shell);
-		if (!shell.line)
+		if (check_eof(shell.line))
 			break ;
 		if (*shell.line)
 			add_history(shell.line);
 		run_line(&shell);
 		free(shell.line);
 		shell.line = NULL;
+		if (shell.want_exit)
+			break ;
 	}
-	ft_putendl_fd("exit", STDOUT_FILENO);
 	shell_free(&shell);
 	return (shell.last_exit);
 }

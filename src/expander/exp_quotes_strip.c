@@ -76,11 +76,13 @@ char	*exp_strip_quotes(char *value)
 
 int	exp_strip_tokens(t_token *tokens)
 {
-	char	*stripped;
+	char			*stripped;
+	t_token_type	prev;
 
+	prev = T_PIPE;
 	while (tokens)
 	{
-		if (tokens->type == T_WORD && tokens->has_quotes)
+		if (tokens->type == T_WORD && tokens->has_quotes && prev != T_HEREDOC)
 		{
 			stripped = exp_strip_quotes(tokens->value);
 			if (!stripped)
@@ -88,6 +90,7 @@ int	exp_strip_tokens(t_token *tokens)
 			free(tokens->value);
 			tokens->value = stripped;
 		}
+		prev = tokens->type;
 		tokens = tokens->next;
 	}
 	return (0);

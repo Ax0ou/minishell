@@ -27,7 +27,11 @@ cc -Wall -Wextra -Werror \
 	src/parser/cmd_list_utils.c \
 	src/parser/cmd_list_free.c \
 	src/expander/exp_quotes_strip.c \
+	src/expander/exp_var_replace.c \
+	src/expander/exp_var_identify.c \
+	src/expander/exp_var_value.c \
 	src/env/env_init.c \
+	src/env/env_access.c \
 	src/utils/ut_cleanup.c \
 	src/utils/ut_error.c \
 	src/lexer/lex_token_list_free.c \
@@ -41,6 +45,8 @@ quoted content
 EOF
 mixed content
 EOF
+hi $USER
+EXP
 abc
 
 partial'
@@ -56,6 +62,10 @@ world
   after cleanup, file exists -> [0]
 > > mixed-quote delimiter (raw = E"O"F) -> ret=[1]
   content -> [mixed content
+]
+  after cleanup, file exists -> [0]
+> > expansion in unquoted delimiter (raw = EXP) -> ret=[1]
+  content -> [hi x
 ]
   after cleanup, file exists -> [0]
 > > empty delimiter (stops at blank line) -> ret=[1]
@@ -75,13 +85,16 @@ assert_eq "delimiteur quote : quotes retirees pour la comparaison" \
 	"$(echo "$expected" | sed -n '6,9p')" "$(echo "$actual" | sed -n '6,9p')"
 assert_eq "delimiteur avec quotes melangees (E\"O\"F) : #34 exp_strip_quotes" \
 	"$(echo "$expected" | sed -n '10,13p')" "$(echo "$actual" | sed -n '10,13p')"
-assert_eq "delimiteur vide : s'arrete a la premiere ligne vide" \
+assert_eq "delimiteur non quote : le contenu est expanse (\$USER -> x)" \
 	"$(echo "$expected" | sed -n '14,17p')" "$(echo "$actual" | sed -n '14,17p')"
-assert_eq "EOF sans delimiteur : execute quand meme avec le contenu lu" \
+assert_eq "delimiteur vide : s'arrete a la premiere ligne vide" \
 	"$(echo "$expected" | sed -n '18,21p')" "$(echo "$actual" | sed -n '18,21p')"
+assert_eq "EOF sans delimiteur : execute quand meme avec le contenu lu" \
+	"$(echo "$expected" | sed -n '22,25p')" "$(echo "$actual" | sed -n '22,25p')"
 assert_eq "heredoc — sortie complète" "$expected" "$actual"
-assert_eq "tmpfile toujours unlink apres usage (5 cas)" \
+assert_eq "tmpfile toujours unlink apres usage (6 cas)" \
 	"0
+0
 0
 0
 0

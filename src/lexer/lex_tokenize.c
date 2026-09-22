@@ -49,7 +49,7 @@ static void	process_char(t_lex *lex, t_token **tokens, char *line)
 		lex->i++;
 		return ;
 	}
-	if (line[lex->i] == ' ')
+	if (line[lex->i] == ' ' || line[lex->i] == '\t')
 	{
 		flush_buffer(lex, tokens);
 		lex->i++;

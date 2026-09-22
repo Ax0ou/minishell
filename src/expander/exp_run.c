@@ -16,7 +16,7 @@ static int	expand_word(t_shell *shell, t_token *tok)
 {
 	char	*expanded;
 
-	expanded = exp_var_replace(shell, tok->value);
+	expanded = exp_var_replace(shell, tok->value, 1);
 	if (!expanded)
 		return (1);
 	free(tok->value);
