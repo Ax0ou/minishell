@@ -1,4 +1,4 @@
-*minishell, by aalvard and dbomfim-, 42 Lausanne.*
+*This project has been created as part of the 42 curriculum by aalvard, dbomfim-.*
 
 <div align="center">
 
@@ -16,10 +16,8 @@
 ![C](https://img.shields.io/badge/Language-C-00599C?style=flat-square&logo=c&logoColor=white)
 ![42](https://img.shields.io/badge/School-42_Lausanne-000000?style=flat-square&logo=42&logoColor=white)
 ![Norm](https://img.shields.io/badge/Norminette-0_errors-success?style=flat-square)
-![Tests](https://img.shields.io/badge/Tests-399_assertions-success?style=flat-square)
+![Tests](https://img.shields.io/badge/Tests-414_assertions-success?style=flat-square)
 ![Leaks](https://img.shields.io/badge/Leaks-0_definitely_lost-success?style=flat-square)
-
-[![CI](https://github.com/Ax0ou/minishell/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Ax0ou/minishell/actions/workflows/ci.yml)
 
 </div>
 
@@ -110,7 +108,7 @@ make
 for t in tests/unit/test_*.sh tests/integration/test_*.sh; do bash "$t"; done
 ```
 
-15 suites, 399 assertions. Memory is checked separately with valgrind:
+16 suites, 414 assertions. Memory is checked separately with valgrind:
 
 ```bash
 bash tests/leaks/leaks_basic.sh
@@ -124,64 +122,114 @@ instead.
 > edge cases. `tests/lib.sh` looks for a `bash >= 4` first, and skips those specific
 > comparisons with a message if it cannot find one. `brew install bash` resolves it.
 
-Every push and pull request runs the same suites plus norminette and valgrind on
-Ubuntu, through GitHub Actions.
-
 ---
 
-## How it works
+## Architecture
+
+### The path of a single line
 
 ```
                            ┌──────────────┐
-   user types a line  ──▶  │  readline()  │  ◀── arrow keys / history / Ctrl-C
+   user types a line  ──▶  │  readline()  │  ◀── history, arrow keys, Ctrl-C
                            └──────┬───────┘
-                                  │  "ls -la | grep .c > out.txt"
+                                  │  echo "$USER" | wc -c > out
                                   ▼
                 ┌──────────────────────────────────┐
+                │        syntax_check_line         │
+                │  unterminated quote ? $? = 2     │
+                └──────────────┬───────────────────┘
+                               ▼
+                ┌──────────────────────────────────┐
                 │              LEXER               │
-                │  splits into tokens, keeps quote │
-                │  info, detects | < > << >>       │
+                │  three-state automaton. Quotes   │
+                │  are KEPT inside the token.      │
                 └──────────────┬───────────────────┘
-                               │  [WORD:ls] [WORD:-la] [PIPE] [WORD:grep] ...
+                   [WORD echo] [WORD "$USER"] [PIPE] [WORD wc] ...
                                ▼
                 ┌──────────────────────────────────┐
-                │          SYNTAX CHECK            │
-                │  rejects | at the edges, missing │
-                │  redirection targets, unclosed   │
-                │  quotes, before anything runs    │
+                │       syntax_check_tokens        │
+                │  pipe at an edge, redirection    │
+                │  without a target ? $? = 2       │
                 └──────────────┬───────────────────┘
-                               │
                                ▼
                 ┌──────────────────────────────────┐
-                │            EXPANDER              │
-                │  resolves $VAR and $?, then      │
-                │  strips quotes. The order is     │
-                │  mandatory: stripping first      │
-                │  would lose the quoting context  │
+                │             EXPANDER             │
+                │  1. expand $VAR and $?           │
+                │  2. THEN strip the quotes        │
+                │  the order is mandatory          │
                 └──────────────┬───────────────────┘
-                               │
                                ▼
                 ┌──────────────────────────────────┐
-                │             PARSER               │
-                │  builds a linked list of t_cmd,  │
-                │  attaches redirections,          │
-                │  pre-reads heredocs              │
+                │              PARSER              │
+                │  linked list of t_cmd, each with │
+                │  its argv and its redirections   │
                 └──────────────┬───────────────────┘
-                               │  cmd1(ls -la) → cmd2(grep .c, > out.txt)
+                     cmd1(echo alvrd) -> cmd2(wc -c, > out)
                                ▼
                 ┌──────────────────────────────────┐
-                │            EXECUTOR              │
+                │         collect_heredocs         │
+                │  every << is read BEFORE any     │
+                │  command starts                  │
+                └──────────────┬───────────────────┘
+                               ▼
+                ┌──────────────────────────────────┐
+                │             EXECUTOR             │
                 │  fork, pipe, dup2, execve, wait  │
-                │  a lone builtin runs in the      │
-                │  parent so cd and export persist │
+                │  a lone builtin stays in the     │
+                │  parent process                  │
                 └──────────────┬───────────────────┘
-                               │
                                ▼
-                          $? updated
-                               │
+                        shell->last_exit
                                ▼
-                       back to readline()
+              tokens, command list and line are freed
+                               ▼
+                        back to readline()
 ```
+
+### Modules
+
+| Directory | Files | Responsibility |
+|---|---:|---|
+| `src/lexer/` | 6 | Splits the line into tokens. Three-state quote automaton, operator detection, token list. Knows nothing about variables or structure. |
+| `src/parser/` | 9 | Turns tokens into a linked list of `t_cmd`, attaches redirections, validates syntax, and reads heredocs into temporary files. |
+| `src/expander/` | 5 | Resolves `$VAR` and `$?`, then strips the delimiting quotes. Replays the quote automaton to know where expansion is allowed. |
+| `src/executor/` | 8 | Resolves the command path, forks, creates the pipes, duplicates the descriptors, waits, and translates the exit status. |
+| `src/redirections/` | 1 | Opens each target with the right flags and duplicates it onto the right descriptor. |
+| `src/builtins/` | 8 | `echo`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`. |
+| `src/env/` | 3 | The environment as a linked list, and the array rebuilt for `execve`. |
+| `src/signals/` | 2 | Three handler sets: at the prompt, during execution, inside a heredoc. |
+| `src/utils/` | 4 | REPL chaining, global cleanup, error reporting, string helpers. |
+
+### Technical decisions
+
+**Quotes survive until the expander.** The lexer keeps them inside the token
+instead of removing them. They carry the information that decides whether a `$`
+must be expanded, and that information is gone once they are stripped.
+
+**Expansion happens before quote removal.** `exp_run` is three lines long so that
+this order is visible at a glance. The reverse makes `echo '$USER'` print the value
+instead of the literal text.
+
+**The whole pipeline is forked before the first wait.** A pipe holds a finite
+amount of data, around 64 KiB. Waiting on the first child before creating the
+second one deadlocks as soon as that child writes more than the pipe can hold,
+because nothing is reading at the other end yet.
+
+**A lone builtin runs in the parent.** `cd`, `export` and `unset` must outlive the
+command. Inside a pipeline they run in a child, which is what bash does too, so
+`cd /tmp | echo hi` changes nothing.
+
+**One global variable, and it is an `int`.** A signal handler receives only a
+number and returns nothing, so it can only reach the rest of the program through a
+global. Everything else lives in `t_shell`, passed by parameter.
+
+**The heredoc handler is installed without `SA_RESTART`.** That is what makes the
+blocking `read` return `EINTR` on Ctrl-C, which is what allows the heredoc to be
+cancelled at all.
+
+**Exit statuses are read with the macros, never raw.** `waitpid` returns an integer
+where the code, the signal and the core flag occupy different bits. `WIFEXITED` and
+`WIFSIGNALED` decide, and a signal death becomes `128 + WTERMSIG`.
 
 ---
 
@@ -190,10 +238,11 @@ Ubuntu, through GitHub Actions.
 ```
 minishell/
 ├── Makefile
-├── includes/minishell.h
+├── README.md
+├── includes/minishell.h     structures and prototypes, one @brief per function
 ├── libft/                   our own C library
 ├── src/                     47 .c files
-│   ├── lexer/        6      tokenizer, quote state machine, operators
+│   ├── lexer/        6      tokenizer, quote automaton, operators
 │   ├── parser/       9      command list, redirections, heredocs, syntax check
 │   ├── expander/     5      $VAR and $? resolution, quote stripping
 │   ├── executor/     8      fork, pipes, path resolution, wait
@@ -202,12 +251,10 @@ minishell/
 │   ├── env/          3      environment as a linked list
 │   ├── signals/      2      prompt, execution and heredoc handlers
 │   └── utils/        4      init, cleanup, errors, string helpers
-├── tests/
-│   ├── unit/                11 suites, per-module runners
-│   ├── integration/         4 suites, full shell against bash
-│   └── leaks/               valgrind scenarios
-├── docs/                    architecture, parsing rules, edge cases, defense notes
-└── .github/workflows/ci.yml build, norminette, tests, valgrind
+└── tests/
+    ├── unit/                12 suites, per-module runners
+    ├── integration/         4 suites, full shell against bash
+    └── leaks/               valgrind scenarios
 ```
 
 ---
@@ -231,17 +278,34 @@ minishell/
 
 **Use of AI**
 
-We used Claude as an assistant during this project, and we want to be explicit
-about how. It was used for code review, for debugging sessions, for hunting memory
-and file descriptor leaks, and for building the test and continuous integration
-infrastructure. It was also used to explain concepts we had not yet met, such as
-process groups and signal delivery.
+We used Claude throughout this project. The subject asks for which tasks and on
+which parts, so here it is.
 
-The architecture, the technical decisions recorded in `docs/ARCHITECTURE.md`, and
-the implementation are ours. Every function in this repository was written or
-reviewed line by line by one of us, and both of us can explain any file on request.
-Where an AI suggestion was adopted, we understood it before committing it. Where we
-disagreed with it, we did not.
+*Understanding and explaining concepts.* This was the main use, and by a wide
+margin. Signal delivery and why the heredoc handler must not carry `SA_RESTART`.
+Why `waitpid` returns an encoded status rather than an exit code. Why a pipe has a
+finite capacity and what that implies for the order of `fork` and `wait`. Why
+quoting information has to survive until expansion. Every technical decision listed
+above was argued through before being written down.
+
+*Review, debugging and testing.* Code review, debugging sessions, and hunting
+memory and file descriptor leaks. An adversarial campaign compared our shell
+against `bash 5.2` on roughly 900 cases and surfaced three real defects, which we
+then fixed: a stack buffer overflow in the lexer that segfaulted on any word of
+4096 characters or more, a quadratic `ft_strjoin` loop in the expander, and a
+`PATH` lookup that stopped at the first non-executable candidate instead of
+continuing like bash.
+
+*Code produced with AI assistance.* Parts of the test suites under `tests/`, parts
+of `src/expander/`, the three fixes above, and the per-function documentation in
+`includes/minishell.h`. Nothing was committed before one of us had read it, run it
+and understood why it works.
+
+*What is ours.* The architecture and the technical decisions described in this
+README, and the implementation of the lexer, the parser, the executor, the
+pipeline, the redirections, the heredocs, the signals, the environment and the
+builtins. We reviewed each other's halves before submitting, and we can each
+explain any file in this repository, including the parts we did not type ourselves.
 
 ---
 
@@ -249,8 +313,8 @@ disagreed with it, we did not.
 
 | | | |
 |:-:|:-:|---|
-| <img src="https://github.com/Ax0ou.png" width="80" /> | **Axel Alvarade** <br> `aalvard` ([`@Ax0ou`](https://github.com/Ax0ou)) | Lexer, parser, expander, quoting, test and CI infrastructure |
-| <img src="https://github.com/DaVy0903.png" width="80" /> | **Davi Bomfim** <br> `dbomfim-` ([`@DaVy0903`](https://github.com/DaVy0903)) | Executor, pipes, redirections, heredocs, signals, environment |
+| <img src="https://github.com/Ax0ou.png" width="80" /> | **Axel Alvarade** <br> `aalvard` ([`@Ax0ou`](https://github.com/Ax0ou)) | Lexer, parser, expander, quoting, test infrastructure |
+| <img src="https://github.com/DaVy0903.png" width="80" /> | **Davi Marcelo Bomfim Mota** <br> `dbomfim-` ([`@DaVy0903`](https://github.com/DaVy0903)) | Executor, pipes, redirections, heredocs, signals, environment |
 
 ---
 
