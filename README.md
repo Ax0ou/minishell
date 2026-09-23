@@ -1,3 +1,5 @@
+*minishell, by aalvard and dbomfim-, 42 Lausanne.*
+
 <div align="center">
 
 ```
@@ -9,35 +11,125 @@
 ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝
 ```
 
-### *A tiny bash, written in C, by two students who refuse to debug for 3 weeks.*
+### *A tiny bash, written in C, by two students who read the man page so you don't have to.*
 
 ![C](https://img.shields.io/badge/Language-C-00599C?style=flat-square&logo=c&logoColor=white)
 ![42](https://img.shields.io/badge/School-42_Lausanne-000000?style=flat-square&logo=42&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Pre--kickoff-yellow?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-Awaiting_Davi-blueviolet?style=flat-square)
-![Norm](https://img.shields.io/badge/Norminette-pending-lightgrey?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT_(maybe)-blue?style=flat-square)
+![Norm](https://img.shields.io/badge/Norminette-0_errors-success?style=flat-square)
+![Tests](https://img.shields.io/badge/Tests-399_assertions-success?style=flat-square)
+![Leaks](https://img.shields.io/badge/Leaks-0_definitely_lost-success?style=flat-square)
 
-[![Issues](https://img.shields.io/github/issues/Ax0ou/minishell?style=flat-square&color=success)](https://github.com/Ax0ou/minishell/issues)
-[![Closed Issues](https://img.shields.io/github/issues-closed/Ax0ou/minishell?style=flat-square&color=blueviolet)](https://github.com/Ax0ou/minishell/issues?q=is%3Aissue+is%3Aclosed)
-[![Last commit](https://img.shields.io/github/last-commit/Ax0ou/minishell?style=flat-square)](https://github.com/Ax0ou/minishell/commits)
+[![CI](https://github.com/Ax0ou/minishell/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Ax0ou/minishell/actions/workflows/ci.yml)
 
 </div>
 
 ---
 
-## ✦ What is this
+## Description
 
-A **POSIX-ish shell**, written from scratch in C, that reproduces the core behavior of `bash` :
-parsing, redirections, pipes, environment variables, signal handling, built-in commands, the whole circus.
+`minishell` is a POSIX-like command interpreter written from scratch in C, as the
+Milestone 3 project of the 42 curriculum. It reads a line, tokenizes it, parses it
+into a command pipeline, expands its variables, and executes it, the way `bash` does.
 
-Built as the **Milestone 3** project of [42 Lausanne](https://42lausanne.ch/), in pair, over 4 weeks.
+Reference behavior is `bash`. Whenever the subject leaves something unspecified, we
+compared our output against `bash --posix` and followed it.
 
-**Reference behavior** = bash (`echo cmd | bash --posix`). When in doubt, we follow bash.
+**What it does**
+
+| | |
+|---|---|
+| Prompt | interactive prompt with line editing and history, via `readline` |
+| Quoting | `'single'` literal, `"double"` with expansion, concatenation, nesting |
+| Redirections | `<`, `>`, `>>`, and heredoc `<<` with quoted or unquoted delimiter |
+| Pipes | arbitrary length pipelines, `cmd1 \| cmd2 \| cmd3` |
+| Expansion | `$VAR`, `$?`, empty and undefined variables, quote-aware |
+| Built-ins | `echo` (with `-n`), `cd`, `pwd`, `export`, `unset`, `env`, `exit` |
+| Signals | `Ctrl-C`, `Ctrl-D`, `Ctrl-\`, including `Ctrl-C` during a heredoc |
+| Exit codes | `0`, `1`, `2`, `126`, `127`, and `128 + N` on signal termination |
+
+**Constraints respected**
+
+- 42 Norm: 25 lines per function, 5 functions per file, no `for`, no ternary
+- Compiled with `-Wall -Wextra -Werror`
+- Exactly one global variable, an `int` holding the received signal number
+- No memory leaks in our own code. The subject explicitly exempts `readline`
+  (page 9), and the remaining `still reachable` blocks under valgrind all
+  originate from `libreadline` and `libtinfo` keymaps allocated once at startup.
 
 ---
 
-## ✦ The pipeline
+## Instructions
+
+### Requirements
+
+- `cc`, `make`
+- GNU `readline` development headers
+
+On Linux:
+
+```bash
+sudo apt install libreadline-dev
+```
+
+On macOS, Apple ships `libedit` rather than GNU readline, and its header does not
+declare `rl_replace_line`. Install the real one, the Makefile detects it:
+
+```bash
+brew install readline
+```
+
+### Build and run
+
+```bash
+git clone git@github.com:Ax0ou/minishell.git
+cd minishell
+make
+./minishell
+```
+
+```
+minishell$ echo "hello $USER" | cat
+hello alvrd
+minishell$ cat << EOF > out.txt
+> one
+> two
+> EOF
+minishell$ wc -l < out.txt
+2
+minishell$ exit
+```
+
+Other targets: `make clean`, `make fclean`, `make re`.
+
+### Tests
+
+The suite compares our output against the system `bash` case by case.
+
+```bash
+make
+for t in tests/unit/test_*.sh tests/integration/test_*.sh; do bash "$t"; done
+```
+
+15 suites, 399 assertions. Memory is checked separately with valgrind:
+
+```bash
+bash tests/leaks/leaks_basic.sh
+```
+
+12 scenarios, failing the run on any `definitely lost` or `indirectly lost` block.
+On macOS valgrind is unavailable and the script says so; use `leaks --atExit -- ./minishell`
+instead.
+
+> On macOS, `bash` is version 3.2 and diverges from modern bash on a few exit-code
+> edge cases. `tests/lib.sh` looks for a `bash >= 4` first, and skips those specific
+> comparisons with a message if it cannot find one. `brew install bash` resolves it.
+
+Every push and pull request runs the same suites plus norminette and valgrind on
+Ubuntu, through GitHub Actions.
+
+---
+
+## How it works
 
 ```
                            ┌──────────────┐
@@ -53,25 +145,35 @@ Built as the **Milestone 3** project of [42 Lausanne](https://42lausanne.ch/), i
                                │  [WORD:ls] [WORD:-la] [PIPE] [WORD:grep] ...
                                ▼
                 ┌──────────────────────────────────┐
+                │          SYNTAX CHECK            │
+                │  rejects | at the edges, missing │
+                │  redirection targets, unclosed   │
+                │  quotes, before anything runs    │
+                └──────────────┬───────────────────┘
+                               │
+                               ▼
+                ┌──────────────────────────────────┐
+                │            EXPANDER              │
+                │  resolves $VAR and $?, then      │
+                │  strips quotes. The order is     │
+                │  mandatory: stripping first      │
+                │  would lose the quoting context  │
+                └──────────────┬───────────────────┘
+                               │
+                               ▼
+                ┌──────────────────────────────────┐
                 │             PARSER               │
                 │  builds a linked list of t_cmd,  │
                 │  attaches redirections,          │
                 │  pre-reads heredocs              │
                 └──────────────┬───────────────────┘
-                               │  pipeline → cmd1(ls -la) → cmd2(grep .c, >out)
-                               ▼
-                ┌──────────────────────────────────┐
-                │            EXPANDER              │
-                │  resolves $VAR and $?,           │
-                │  strips quotes,                  │
-                │  respects single vs double       │
-                └──────────────┬───────────────────┘
-                               │
+                               │  cmd1(ls -la) → cmd2(grep .c, > out.txt)
                                ▼
                 ┌──────────────────────────────────┐
                 │            EXECUTOR              │
                 │  fork, pipe, dup2, execve, wait  │
-                │  builtins run in parent if alone │
+                │  a lone builtin runs in the      │
+                │  parent so cd and export persist │
                 └──────────────┬───────────────────┘
                                │
                                ▼
@@ -83,162 +185,77 @@ Built as the **Milestone 3** project of [42 Lausanne](https://42lausanne.ch/), i
 
 ---
 
-## ✦ Sprint progress
-
-| Sprint | Goal | Status | Tests |
-|:------:|------|:------:|:-----:|
-| **S1** | Lexer + Env + builtins simples (`echo`, `pwd`, `env`, `exit`) | ⬜ Pending | 0 / ~41 |
-| **S2** | Parser + Executor 1 cmd + Redirections + `cd` | ⬜ Pending | 0 / ~35 |
-| **S3** | Expander + Pipes + Heredoc + `export`/`unset` | ⬜ Pending | 0 / ~40 |
-| **S4** | Signals + Polish + Leak chase + 50 edge cases | ⬜ Pending | 0 / ~50 |
-| **Bonus** | `&&`, `||`, `()`, wildcards | ⬜ Optional | — |
-
-> [!NOTE]
-> Trackeur mis à jour à chaque clôture de sprint. Voir [docs/PLAN.md](docs/PLAN.md) pour les critères go/no-go.
-
----
-
-## ✦ Features (toggle as we ship)
-
-### Mandatory
-- ⬜ Prompt with readline + history
-- ⬜ Single command : `ls`, `cat`, `/bin/echo`, etc.
-- ⬜ Quotes (`'...'` literal, `"..."` with expansion)
-- ⬜ Redirections : `<`, `>`, `>>`
-- ⬜ Heredoc : `<<` (with/without quoted delimiter)
-- ⬜ Pipes : `cmd1 | cmd2 | cmd3 ...`
-- ⬜ Environment variables : `$VAR`, `$?`
-- ⬜ Built-ins : `echo -n`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`
-- ⬜ Signals : `Ctrl-C`, `Ctrl-D`, `Ctrl-\`
-- ⬜ Exit codes : 0, 1, 2, 126, 127, 128+N
-
-### Constraints (non-negotiable)
-- 🛡️ Norminette compliant
-- 🛡️ Zero memory leaks (excluding readline)
-- 🛡️ Zero segfault / bus error / double free
-- 🛡️ Exactly **one** global variable (an `int`, for the signal number)
-- 🛡️ Only [authorized functions](docs/PARSING_RULES.md#11-liste-de-fonctions-externes-autoris%C3%A9es)
-
-### Bonus (if mandatory is perfect)
-- ⬜ `&&` and `||` with parentheses
-- ⬜ Wildcards `*` in cwd
-
----
-
-## ✦ Quick start
-
-> [!WARNING]
-> Pas encore de code. Cette section sera à jour dès le S1.
-
-```bash
-git clone git@github.com:Ax0ou/minishell.git
-cd minishell
-
-make            # build
-./minishell     # launch
-
-# Inside:
-$ echo "hello $USER" | cat
-hello axalva
-$ exit
-```
-
-### Running tests
-
-```bash
-bash tests/run_all.sh         # tout : build + norm + unit + integ + leaks
-bash tests/run_sprint.sh 1    # juste le sprint courant
-```
-
----
-
-## ✦ Repo structure
+## Repository layout
 
 ```
 minishell/
-├── README.md          ← you are here
-├── TEAM_GUIDE.md      ← daily workflow for the duo (READ FIRST)
-├── docs/              ← 9 planning & reference docs (~3000 lines)
-├── tests/             ← 4-tier test suite (unit / integration / system / leaks)
-├── .github/           ← PR + issue templates
-├── Makefile           ← (to be created in S1)
-├── includes/          ← (to be created in S1)
-├── libft/             ← (to be created in S1)
-└── src/               ← (to be created in S1)
-    ├── lexer/        parser/       expander/
-    ├── executor/     redirections/ builtins/
-    ├── signals/      env/          utils/
+├── Makefile
+├── includes/minishell.h
+├── libft/                   our own C library
+├── src/                     47 .c files
+│   ├── lexer/        6      tokenizer, quote state machine, operators
+│   ├── parser/       9      command list, redirections, heredocs, syntax check
+│   ├── expander/     5      $VAR and $? resolution, quote stripping
+│   ├── executor/     8      fork, pipes, path resolution, wait
+│   ├── redirections/ 1      opening and duplicating file descriptors
+│   ├── builtins/     8      echo, cd, pwd, export, unset, env, exit
+│   ├── env/          3      environment as a linked list
+│   ├── signals/      2      prompt, execution and heredoc handlers
+│   └── utils/        4      init, cleanup, errors, string helpers
+├── tests/
+│   ├── unit/                11 suites, per-module runners
+│   ├── integration/         4 suites, full shell against bash
+│   └── leaks/               valgrind scenarios
+├── docs/                    architecture, parsing rules, edge cases, defense notes
+└── .github/workflows/ci.yml build, norminette, tests, valgrind
 ```
-
-Target : **~60 .c files** following the 4-functions-per-file norm 42 rule.
 
 ---
 
-## ✦ The two humans behind this
+## Resources
+
+**Documentation**
+
+- The `bash` manual page, and `bash --posix` itself as the reference implementation
+- `man readline`, `man 2 execve`, `man 2 fork`, `man 2 dup2`, `man 2 sigaction`
+- [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html)
+- [Valgrind FAQ](https://valgrind.org/docs/manual/faq.html), on the meaning of
+  `still reachable` versus a real leak
+
+**Community**
+
+- `mcombeau/minishell`, read for its file granularity. Structure studied, code
+  written from scratch.
+- The 42 community testers (`francinette`, `42_minishell_tester`, `mshell_tester`),
+  used to find edge cases, alongside our own suite.
+
+**Use of AI**
+
+We used Claude as an assistant during this project, and we want to be explicit
+about how. It was used for code review, for debugging sessions, for hunting memory
+and file descriptor leaks, and for building the test and continuous integration
+infrastructure. It was also used to explain concepts we had not yet met, such as
+process groups and signal delivery.
+
+The architecture, the technical decisions recorded in `docs/ARCHITECTURE.md`, and
+the implementation are ours. Every function in this repository was written or
+reviewed line by line by one of us, and both of us can explain any file on request.
+Where an AI suggestion was adopted, we understood it before committing it. Where we
+disagreed with it, we did not.
+
+---
+
+## Authors
 
 | | | |
 |:-:|:-:|---|
-| <img src="https://github.com/Ax0ou.png" width="80" /> | **Axel** ([`@Ax0ou`](https://github.com/Ax0ou)) | Frontend : lexer / parser / expander / signals<br>Built the org. Yells at himself when forgetting `Closes #N`. |
-| <img src="https://github.com/DaVy0903.png" width="80" /> | **Davi** ([`@DaVy0903`](https://github.com/DaVy0903)) | Backend : executor / env / utils / signals<br>Brings the fork() wisdom. |
-
----
-
-## ✦ Documentation
-
-> [!TIP]
-> Tout est dans `docs/`. Lis dans l'ordre selon ta phase.
-
-### Before you code
-| # | File | Purpose |
-|---|------|---------|
-| 1 | [TEAM_GUIDE.md](TEAM_GUIDE.md) | **READ FIRST.** Daily workflow : branches, PR, board, conventions |
-| 2 | [docs/ROLES.md](docs/ROLES.md) | Who codes what |
-| 3 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Module breakdown + 8 frozen technical decisions |
-| 4 | [docs/PLAN.md](docs/PLAN.md) | 4-week roadmap + go/no-go criteria |
-| 5 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Git conventions detail |
-| 6 | [docs/TESTS.md](docs/TESTS.md) | Test strategy, 250+ cases, runners |
-
-### While you code
-| # | File | When |
-|---|------|------|
-| 7 | [docs/PARSING_RULES.md](docs/PARSING_RULES.md) | Coding lexer/parser/expander |
-| 8 | [docs/EDGE_CASES.md](docs/EDGE_CASES.md) | Any "weird" bug. The 42 traps catalog |
-
-### Before you submit
-| # | File | When |
-|---|------|------|
-| 9 | [docs/CHECKLIST.md](docs/CHECKLIST.md) | 24h before submit — 147 items |
-| 10 | [docs/DEFENSE.md](docs/DEFENSE.md) | Before evaluation — 16 classic Q&A |
-
----
-
-## ✦ Anti-patterns we will NOT commit
-
-> [!CAUTION]
-> Toute PR qui viole une de ces règles est refusée à la review. Cf [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-- ❌ Expansion inside the lexer (we'd lose the quote info)
-- ❌ `wait()` before forking ALL children of a pipeline (deadlock on SIGPIPE)
-- ❌ Forgetting `close()` on pipe fds in the parent (children stuck on `read`)
-- ❌ Calling `exit()` from a builtin (except `exit` itself) — we `return` codes
-- ❌ Using `printf` for errors — `write` on fd 2 only
-- ❌ More than one global variable (the sole `int g_signal` is sacred)
-
----
-
-## ✦ Acknowledgements
-
-- **mcombeau/minishell** — for inspiration on the file granularity (got 99% at eval). Studied the structure, wrote everything from scratch.
-- **The 42 community** — for the testers (francinette, 42_minishell_tester, mshell_tester) and the absurd amount of edge cases discovered the hard way.
-- **bash man page** — our north star.
+| <img src="https://github.com/Ax0ou.png" width="80" /> | **Axel Alvarade** <br> `aalvard` ([`@Ax0ou`](https://github.com/Ax0ou)) | Lexer, parser, expander, quoting, test and CI infrastructure |
+| <img src="https://github.com/DaVy0903.png" width="80" /> | **Davi Bomfim** <br> `dbomfim-` ([`@DaVy0903`](https://github.com/DaVy0903)) | Executor, pipes, redirections, heredocs, signals, environment |
 
 ---
 
 <div align="center">
 
-*Cette README sera remplacée par la version officielle 42 (login italique, sections du chapitre V) lors du rendu final.*
-*En attendant : on a un truc qu'on lit avec plaisir.*
-
-**Made with `fork(2)`, `execve(2)`, and an unreasonable amount of `valgrind` runs.**
+**Made with `fork(2)`, `execve(2)`, and an unreasonable number of `valgrind` runs.**
 
 </div>
