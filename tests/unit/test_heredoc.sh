@@ -18,7 +18,7 @@ HD_STDERR_LOG="/tmp/minishell_heredoc_test_stderr.log"
 HD_VALGRIND_LOG="/tmp/minishell_heredoc_test_valgrind.log"
 trap 'rm -f "$HD_TEST_BIN" "$HD_STDERR_LOG" "$HD_VALGRIND_LOG"' EXIT
 
-cc -Wall -Wextra -Werror \
+cc -Wall -Wextra -Werror $RL_CFLAGS $RL_LDFLAGS \
 	tests/unit/heredoc_runner.c \
 	src/parser/parse_heredoc.c \
 	src/parser/parse_heredoc_utils.c \

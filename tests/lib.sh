@@ -6,6 +6,19 @@
 SHELL_BIN="${SHELL_BIN:-./minishell}"
 BASH_BIN="${BASH_BIN:-bash}"
 
+# Chemins readline : indispensables sur macOS (libedit n'a pas
+# rl_replace_line), sans effet sous Linux ou RL_CFLAGS reste vide.
+RL_CFLAGS=""
+RL_LDFLAGS=""
+if [ "$(uname)" = "Darwin" ]; then
+	RL_PREFIX="$(brew --prefix readline 2>/dev/null)"
+	if [ -n "$RL_PREFIX" ]; then
+		RL_CFLAGS="-I$RL_PREFIX/include"
+		RL_LDFLAGS="-L$RL_PREFIX/lib"
+	fi
+fi
+export RL_CFLAGS RL_LDFLAGS
+
 # Compteurs (réinitialisés à chaque source)
 PASS=0
 FAIL=0
