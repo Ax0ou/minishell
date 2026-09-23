@@ -4,7 +4,24 @@
 
 # ─── Configuration ───────────────────────────────────────────────────────
 SHELL_BIN="${SHELL_BIN:-./minishell}"
-BASH_BIN="${BASH_BIN:-bash}"
+
+# macOS livre bash 3.2 (bloque a la licence GPLv2). Son builtin exit ne se
+# comporte pas comme bash 5 sur "exit abc def" : 3.2 traite d'abord le
+# nombre d'arguments, 5 traite d'abord la validite du premier. La reference
+# du sujet est le bash des machines de l'ecole, donc bash 5. On cherche donc
+# un bash >= 4 avant de se rabattre sur celui du systeme.
+if [ -z "$BASH_BIN" ]; then
+	for _b in /opt/homebrew/bin/bash /usr/local/bin/bash bash; do
+		if command -v "$_b" > /dev/null 2>&1 && \
+			[ "$("$_b" -c 'echo ${BASH_VERSINFO[0]}' 2>/dev/null || echo 0)" -ge 4 ]; then
+			BASH_BIN="$_b"
+			break
+		fi
+	done
+	BASH_BIN="${BASH_BIN:-bash}"
+fi
+BASH_MAJOR="$("$BASH_BIN" -c 'echo ${BASH_VERSINFO[0]}' 2>/dev/null || echo 0)"
+export BASH_BIN BASH_MAJOR
 
 # Chemins readline : indispensables sur macOS (libedit n'a pas
 # rl_replace_line), sans effet sous Linux ou RL_CFLAGS reste vide.

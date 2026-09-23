@@ -38,14 +38,11 @@ SRC = 	src/builtins/bi_cd.c \
 		src/executor/exec_run.c \
 		src/executor/exec_single.c \
 		src/executor/exec_wait.c \
-		src/expander/exp_quotes_handle.c \
 		src/expander/exp_quotes_strip.c \
 		src/expander/exp_run.c \
 		src/expander/exp_var_identify.c \
 		src/expander/exp_var_replace.c \
 		src/expander/exp_var_value.c \
-		src/lexer/lex_grammar.c \
-		src/lexer/lex_input.c \
 		src/lexer/lex_quotes.c \
 		src/lexer/lex_token_list.c \
 		src/lexer/lex_token_list_free.c \
@@ -54,9 +51,6 @@ SRC = 	src/builtins/bi_cd.c \
 		src/lexer/lex_operators.c \
 		src/parser/cmd_list_free.c \
 		src/parser/cmd_list_utils.c \
-		src/parser/parse_args_default.c \
-		src/parser/parse_args_echo.c \
-		src/parser/parse_args_echo_utils.c \
 		src/parser/parse_heredoc.c \
 		src/parser/parse_heredoc_utils.c \
 		src/parser/parse_input.c \
@@ -65,12 +59,10 @@ SRC = 	src/builtins/bi_cd.c \
 		src/parser/parse_word.c \
 		src/parser/syntax_check.c \
 		src/redirections/redir_files.c \
-		src/redirections/redir_pipes.c \
 		src/signals/signals.c \
 		src/signals/signals_heredoc.c \
 		src/utils/ut_cleanup.c \
 		src/utils/ut_error.c \
-		src/utils/ut_exit.c \
 		src/utils/ut_init_data.c \
 		src/utils/ut_str.c \
 		src/main.c
