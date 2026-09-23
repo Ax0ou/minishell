@@ -24,7 +24,7 @@ printf 'no exec bit here\n' > "$FIXTURE_DIR/binB/noperm"
 chmod -x "$FIXTURE_DIR/binB/noperm"
 
 make --no-print-directory -C libft >/dev/null
-cc -Wall -Wextra -Werror \
+cc -Wall -Wextra -Werror $RL_CFLAGS $RL_LDFLAGS \
 	tests/unit/exec_path_runner.c \
 	src/executor/exec_path.c \
 	src/executor/exec_path_utils.c \
@@ -95,7 +95,7 @@ chmod +x "$SINGLE_FIXTURE_DIR/killself"
 printf 'no exec bit here\n' > "$SINGLE_FIXTURE_DIR/noperm"
 chmod -x "$SINGLE_FIXTURE_DIR/noperm"
 
-cc -Wall -Wextra -Werror \
+cc -Wall -Wextra -Werror $RL_CFLAGS $RL_LDFLAGS \
 	tests/unit/exec_single_runner.c \
 	src/executor/exec_single.c \
 	src/executor/exec_child.c \
@@ -156,7 +156,7 @@ PIPE_VALGRIND_LOG="/tmp/minishell_exec_pipeline_valgrind.log"
 PIPE_STDERR_LOG="/tmp/minishell_exec_pipeline_stderr.log"
 trap 'rm -rf "$FIXTURE_DIR" "$SINGLE_FIXTURE_DIR"; rm -f "$PATH_TEST_BIN" "$PATH_VALGRIND_LOG" "$SINGLE_TEST_BIN" "$SINGLE_VALGRIND_LOG" "$SINGLE_STDERR_LOG" "$PIPE_TEST_BIN" "$PIPE_VALGRIND_LOG" "$PIPE_STDERR_LOG"' EXIT
 
-cc -Wall -Wextra -Werror \
+cc -Wall -Wextra -Werror $RL_CFLAGS $RL_LDFLAGS \
 	tests/unit/exec_pipeline_runner.c \
 	src/executor/exec_pipeline.c \
 	src/executor/exec_pipeline_utils.c \

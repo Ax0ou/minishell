@@ -8,6 +8,17 @@ LIBFT = $(LIBFT_DIR)/libft.a
 
 LDFLAGS = -lreadline
 
+# macOS ne fournit pas GNU readline, seulement libedit, dont l'en-tete ne
+# declare pas rl_replace_line. On pointe vers la readline de Homebrew.
+# Sous Linux, RL_PREFIX est vide et rien ne change.
+ifeq ($(shell uname), Darwin)
+	RL_PREFIX := $(shell brew --prefix readline 2>/dev/null)
+	ifneq ($(RL_PREFIX),)
+		CFLAGS += -I$(RL_PREFIX)/include
+		LDFLAGS += -L$(RL_PREFIX)/lib
+	endif
+endif
+
 SRC = 	src/builtins/bi_cd.c \
 		src/builtins/bi_echo.c \
 		src/builtins/bi_env.c \

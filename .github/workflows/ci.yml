@@ -50,3 +50,27 @@ jobs:
             echo "::endgroup::"
           done
           exit $fail
+
+  leaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Dependances (readline, valgrind)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libreadline-dev valgrind
+
+      - name: Compilation
+        run: make
+
+      - name: Valgrind (leaks definite + indirect)
+        run: bash tests/leaks/leaks_basic.sh
+
+      - name: Logs valgrind (si echec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: valgrind-logs
+          path: /tmp/minishell_leaks/
+          retention-days: 7

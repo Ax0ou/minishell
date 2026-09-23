@@ -18,7 +18,7 @@ SANDBOX="$TMP_P/minishell_syntax_box"
 trap 'rm -rf "$MSH" "$SANDBOX"' EXIT
 
 make --no-print-directory -C libft >/dev/null
-cc -Wall -Wextra -Werror \
+cc -Wall -Wextra -Werror $RL_CFLAGS $RL_LDFLAGS \
 	tests/integration/shell_runner.c \
 	$(find src -name '*.c' -size +0 ! -name 'main.c') \
 	libft/libft.a -lreadline \
