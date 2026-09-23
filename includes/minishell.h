@@ -65,7 +65,9 @@ typedef struct s_lex
 	t_lex_state	state;
 	int			token_active;
 	int			has_quotes;
-	char		buffer[4096];
+	char		*buffer;
+	int			len;
+	int			cap;
 	int			i;
 }	t_lex;
 
@@ -95,7 +97,7 @@ typedef struct s_env
 {
 	char			*key;
 	char			*value;
-	int				exported;	// 1 si visible par env, 0 sinon
+	int				exported;
 	struct s_env	*next;
 }	t_env;
 
@@ -118,7 +120,6 @@ int					env_set(t_env **env, char *key, char *value, int exported);
 void				env_unset(t_env **env, char *key);
 char				**env_to_array(t_env *env);
 
-/*executor*/
 t_path_status		resolve_path(t_env *env, char *name, char **out_path);
 int					probe_path(char *path);
 void				free_split(char **arr);
@@ -137,10 +138,8 @@ void				child_dup_pipes(int prev_read, int p[2], int has_next);
 void				pipe_child_run(t_shell *shell, t_cmd *cmd);
 int					wait_all(pid_t *pids, int n);
 
-/*redirections*/
 int					apply_redirs(t_redir *redirs);
 
-/*builtins*/
 int					bi_env(t_env *env);
 int					bi_pwd(void);
 int					bi_echo(char **argv);
@@ -153,14 +152,12 @@ int					key_lt(char *a, char *b);
 int					valid_identifier(char *s, int stop_at_eq);
 int					bi_unset(t_env **env, char **argv);
 
-/*utils*/
 int					print_error(char *cmd, char *arg, char *msg);
 int					parse_ll(char *s, long long *out);
 void				shell_free(t_shell *shell);
 void				init_shell(t_shell *shell, char **envp);
 void				run_line(t_shell *shell);
 
-/*parser*/
 t_cmd				*parse_tokens(t_token *tokens);
 int					syntax_check_tokens(t_token *tokens);
 int					syntax_check_line(char *line);
@@ -180,7 +177,6 @@ char				*heredoc_tmp_path(void);
 int					read_heredoc_body(char *delim, int fd, t_shell *shell,
 						int expand);
 
-/*expander*/
 int					exp_run(t_shell *shell);
 int					exp_var_len(char *s);
 char				*exp_var_value(t_shell *shell, char *s, int len);
@@ -189,21 +185,19 @@ char				*exp_var_replace(t_shell *shell, char *str,
 char				*exp_strip_quotes(char *value);
 int					exp_strip_tokens(t_token *tokens);
 
-/*lexer stuff*/
 void				token_add_back(t_token **head, t_token *new);
 t_token				*new_token(t_token_type type, char *value);
 t_token				*lex_tokenize(char *line);
 void				token_list_free(t_token *head);
 t_token_type		detect_operator(char *line, int i, int *len);
-void				append_char(char *buffer, char c);
+void				append_char(t_lex *lex, char c);
 void				flush_buffer(t_lex *lex, t_token **head);
-void				lex_init(t_lex *lex);
+int					lex_init(t_lex *lex);
 int					lex_in_quote(t_lex *lex);
 int					lex_is_quote_char(char c);
 int					lex_is_operator_char(char c);
 void				lex_handle_quote_char(t_lex *lex, char c);
 
-/*signals*/
 void				setup_prompt_signals(void);
 void				setup_exec_signals(void);
 void				reset_child_signals(void);

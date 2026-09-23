@@ -12,14 +12,6 @@
 
 #include "../../includes/minishell.h"
 
-/*
-** s pointe sur le nom (juste apres le '$'), len vient de exp_var_len.
-** Renvoie TOUJOURS une chaine allouee, que l'appelant doit liberer :
-**   $?        -> le dernier code de sortie en texte ("0", "127"...)
-**   $0 a $9   -> "" (minishell ne recoit pas d'arguments)
-**   $NOM      -> sa valeur dans l'env, "" si absente ou sans valeur
-** Renvoie NULL uniquement si un malloc echoue.
-*/
 char	*exp_var_value(t_shell *shell, char *s, int len)
 {
 	char	*name;
