@@ -30,7 +30,7 @@ cc -Wall -Wextra -Werror \
 mine() { "$E_BIN" "$@"; printf '|END'; }
 
 # sortie brute du echo builtin de bash, sentinel compris
-theirs() { bash -c 'echo "$@"' _ "$@"; printf '|END'; }
+theirs() { $BASH_BIN -c 'echo "$@"' _ "$@"; printf '|END'; }
 
 echo "═══ A. echo, valeurs attendues (issue #8) ═══"
 
@@ -133,7 +133,7 @@ ex() { local c; "$X_BIN" "$@" >/dev/null 2>&1 && c=0 || c=$?; echo "$c"; }
 ex_err() { "$X_BIN" "$@" 2>&1 >/dev/null || true; }
 
 # code de sortie du exit builtin de bash
-bx() { local c; bash -c 'exit "$@"' _ "$@" 2>/dev/null && c=0 || c=$?; echo "$c"; }
+bx() { local c; $BASH_BIN -c 'exit "$@"' _ "$@" 2>/dev/null && c=0 || c=$?; echo "$c"; }
 
 echo "  -- codes de sortie, valeurs attendues --"
 
@@ -172,6 +172,12 @@ cmp_exit() {
 	assert_eq "$name" "$(bx "$@")" "$(ex "$@")"
 }
 
+if [ "${BASH_MAJOR:-0}" -lt 4 ]; then
+	printf "  ${C_YELLOW}⚠${C_RESET} comparaison ignoree : bash %s est trop ancien\n" "$BASH_MAJOR"
+	printf "    Le bash 3.2 d'Apple diverge sur \"exit abc def\". La reference\n"
+	printf "    est bash 5, comme sur les machines de l'ecole et dans la CI.\n"
+	printf "    Pour tester en local : brew install bash\n"
+else
 cmp_exit "vs bash : 42"          42
 cmp_exit "vs bash : 0"           0
 cmp_exit "vs bash : 255"         255
@@ -187,5 +193,6 @@ cmp_exit "vs bash : 1 abc"       1 abc
 cmp_exit "vs bash : abc 1"       abc 1
 cmp_exit "vs bash : -1"          -1
 cmp_exit "vs bash : -300"        -300
+fi
 
 summary
