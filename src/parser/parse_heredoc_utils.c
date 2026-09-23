@@ -73,7 +73,23 @@ static char	*read_line_raw(int fd)
 	return (ft_strdup(buf));
 }
 
-int	read_heredoc_body(char *delim, int fd)
+static void	write_heredoc_line(int fd, char *line, t_shell *shell, int expand)
+{
+	char	*out;
+
+	out = line;
+	if (expand)
+		out = exp_var_replace(shell, line, 0);
+	if (!out)
+		return ;
+	write(fd, out, ft_strlen(out));
+	if (!ft_strchr(out, '\n'))
+		write(fd, "\n", 1);
+	if (out != line)
+		free(out);
+}
+
+int	read_heredoc_body(char *delim, int fd, t_shell *shell, int expand)
 {
 	char	*line;
 	int		dlen;
@@ -89,9 +105,7 @@ int	read_heredoc_body(char *delim, int fd)
 			free(line);
 			return (1);
 		}
-		write(fd, line, ft_strlen(line));
-		if (!ft_strchr(line, '\n'))
-			write(fd, "\n", 1);
+		write_heredoc_line(fd, line, shell, expand);
 		free(line);
 		ft_putstr_fd("> ", 1);
 		line = read_line_raw(STDIN_FILENO);

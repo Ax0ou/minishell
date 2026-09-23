@@ -106,6 +106,7 @@ typedef struct s_shell
 	char		*line;
 	t_token		*tokens;
 	t_cmd		*cmds;
+	int			want_exit;
 }	t_shell;
 
 extern int			g_signal;
@@ -176,13 +177,15 @@ int					attach_redirs(t_cmd *cmd, t_token *token);
 int					collect_heredocs(t_shell *shell);
 void				cleanup_heredocs(t_cmd *cmds);
 char				*heredoc_tmp_path(void);
-int					read_heredoc_body(char *delim, int fd);
+int					read_heredoc_body(char *delim, int fd, t_shell *shell,
+						int expand);
 
 /*expander*/
 int					exp_run(t_shell *shell);
 int					exp_var_len(char *s);
 char				*exp_var_value(t_shell *shell, char *s, int len);
-char				*exp_var_replace(t_shell *shell, char *str);
+char				*exp_var_replace(t_shell *shell, char *str,
+						int respect_quotes);
 char				*exp_strip_quotes(char *value);
 int					exp_strip_tokens(t_token *tokens);
 
