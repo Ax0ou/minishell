@@ -20,18 +20,19 @@ t_token	*lex_tokenize(char *line)
 	t_lex	lex;
 	t_token	*tokens;
 
-	if (!line)
+	if (!line || !lex_init(&lex))
 		return (NULL);
-	lex_init(&lex);
 	tokens = NULL;
 	while (line[lex.i])
 		process_char(&lex, &tokens, line);
-	if (lex_in_quote(&lex))
+	if (lex_in_quote(&lex) || !lex.buffer)
 	{
 		token_list_free(tokens);
+		free(lex.buffer);
 		return (NULL);
 	}
 	flush_buffer(&lex, &tokens);
+	free(lex.buffer);
 	return (tokens);
 }
 
@@ -59,7 +60,7 @@ static void	process_char(t_lex *lex, t_token **tokens, char *line)
 		handle_operator(lex, tokens, line);
 	else
 	{
-		append_char(lex->buffer, line[lex->i]);
+		append_char(lex, line[lex->i]);
 		lex->i++;
 	}
 }

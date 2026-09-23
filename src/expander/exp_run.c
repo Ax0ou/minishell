@@ -34,12 +34,6 @@ static void	drop_token(t_token **link)
 	free(tok);
 }
 
-/*
-** Etend chaque mot, sauf le delimiteur d'un heredoc (cat << $USER
-** cherche litteralement "$USER"). Un mot sans quotes devenu vide
-** disparait, comme dans bash : echo $INEXISTANT a -> echo a.
-** On le garde s'il sert de cible a une redirection.
-*/
 static int	expand_tokens(t_shell *shell)
 {
 	t_token			**link;
@@ -66,10 +60,6 @@ static int	expand_tokens(t_shell *shell)
 	return (0);
 }
 
-/*
-** Point d'entree unique de l'expander : d'abord les variables,
-** ensuite le retrait des quotes. L'ordre est obligatoire.
-*/
 int	exp_run(t_shell *shell)
 {
 	if (expand_tokens(shell))
