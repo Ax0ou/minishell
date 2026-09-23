@@ -33,12 +33,22 @@ assert_eq "500 guillemets : erreur de syntaxe, pas de crash" "0" "$?"
 
 echo "═══ Robustesse : l'expansion ne doit pas etre quadratique ═══"
 
+# timeout(1) vient des coreutils GNU : absent de macOS, present sous le nom
+# gtimeout si l'utilisateur a installe coreutils. On s'en passe s'il manque,
+# la mesure du temps ecoule reste l'assertion qui compte.
+TIMEOUT=""
+if command -v timeout > /dev/null 2>&1; then
+	TIMEOUT="timeout 30"
+elif command -v gtimeout > /dev/null 2>&1; then
+	TIMEOUT="gtimeout 30"
+fi
+
 big=$(python3 -c "print('a' * 200000)")
 start=$SECONDS
-printf 'echo %s\n' "$big" | timeout 15 $SHELL_BIN > /dev/null 2>&1
+printf 'echo %s\n' "$big" | $TIMEOUT $SHELL_BIN > /dev/null 2>&1
 code=$?
 elapsed=$((SECONDS - start))
-assert_eq "200 000 caracteres traites en moins de 15 s" "0" "$code"
+assert_eq "200 000 caracteres : sortie normale" "0" "$code"
 if [ "$elapsed" -le 5 ]; then
 	printf "  ${C_GREEN}✓${C_RESET} 200 000 caracteres en %s s (lineaire)\n" "$elapsed"
 	PASS=$((PASS + 1))
