@@ -12,13 +12,6 @@
 
 #include "../../includes/minishell.h"
 
-/*
-** Colle les len premiers caracteres de add au bout de *res.
-** len == 0 : rien a coller. Test obligatoire, car ft_substr de la
-** libft renvoie NULL pour une longueur 0, ce qu'on prendrait a tort
-** pour un echec de malloc.
-** Si un malloc echoue, *res est libere et passe a NULL.
-*/
 static void	append(char **res, char *add, int len)
 {
 	char	*piece;
@@ -35,10 +28,6 @@ static void	append(char **res, char *add, int len)
 	*res = joined;
 }
 
-/*
-** Meme automate que le lexer : on sait a tout moment si on est
-** dehors, entre '...' ou entre "...".
-*/
 static void	update_state(t_lex_state *state, char c)
 {
 	if (*state == STATE_NORMAL && c == '\'')
@@ -50,10 +39,22 @@ static void	update_state(t_lex_state *state, char c)
 		*state = STATE_NORMAL;
 }
 
-/*
-** s pointe sur un '$'. Colle sa valeur au bout de *res et renvoie
-** le nombre de caracteres consommes dans la chaine d'origine.
-*/
+static int	plain_len(char *s, t_lex_state state, int respect_quotes)
+{
+	int	n;
+
+	n = 1;
+	while (s[n])
+	{
+		if (respect_quotes && (s[n] == '\'' || s[n] == '"'))
+			break ;
+		if (s[n] == '$' && state != STATE_SQUOTE)
+			break ;
+		n++;
+	}
+	return (n);
+}
+
 static int	expand_one(t_shell *shell, char *s, char **res)
 {
 	int		len;
@@ -77,19 +78,12 @@ static int	expand_one(t_shell *shell, char *s, char **res)
 	return (1 + len);
 }
 
-/*
-** Renvoie une nouvelle chaine ou chaque $NOM et $? est remplace par
-** sa valeur, sauf entre quotes simples. Les quotes sont conservees :
-** elles seront retirees ensuite par exp_strip_tokens.
-** respect_quotes = 0 pour un contenu de heredoc : les quotes y sont
-** litterales, pas structurelles, donc un ' ne doit pas couper l'expansion.
-** NULL uniquement si un malloc echoue.
-*/
 char	*exp_var_replace(t_shell *shell, char *str, int respect_quotes)
 {
 	char		*res;
 	t_lex_state	state;
 	int			i;
+	int			n;
 
 	res = ft_strdup("");
 	state = STATE_NORMAL;
@@ -102,8 +96,9 @@ char	*exp_var_replace(t_shell *shell, char *str, int respect_quotes)
 			i += expand_one(shell, str + i, &res);
 		else
 		{
-			append(&res, str + i, 1);
-			i++;
+			n = plain_len(str + i, state, respect_quotes);
+			append(&res, str + i, n);
+			i += n;
 		}
 	}
 	return (res);

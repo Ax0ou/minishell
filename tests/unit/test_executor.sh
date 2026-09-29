@@ -37,7 +37,7 @@ cc -Wall -Wextra -Werror $RL_CFLAGS $RL_LDFLAGS \
 	-o "$PATH_TEST_BIN"
 
 expected="PATH search: found + executable -> status=[OK] path=[$FIXTURE_DIR/binA/runme]
-PATH search: found but is a directory -> status=[ISDIR] path=[(null)]
+PATH search: found but is a directory -> status=[CNF] path=[(null)]
 PATH search: found but not executable -> status=[NOPERM] path=[(null)]
 PATH search: not found anywhere -> status=[CNF] path=[(null)]
 direct path: found + executable -> status=[OK] path=[$FIXTURE_DIR/binA/runme]
@@ -50,7 +50,7 @@ PATH empty -> status=[CNF] path=[(null)]"
 actual=$("$PATH_TEST_BIN" "$FIXTURE_DIR")
 
 assert_eq "PATH search trouve + executable -> OK" "$(echo "$expected" | sed -n '1p')" "$(echo "$actual" | sed -n '1p')"
-assert_eq "PATH search trouve un dossier -> ISDIR (126)" "$(echo "$expected" | sed -n '2p')" "$(echo "$actual" | sed -n '2p')"
+assert_eq "PATH search trouve un dossier -> on continue, CNF (127 comme bash)" "$(echo "$expected" | sed -n '2p')" "$(echo "$actual" | sed -n '2p')"
 assert_eq "PATH search trouve sans +x -> NOPERM (126)" "$(echo "$expected" | sed -n '3p')" "$(echo "$actual" | sed -n '3p')"
 assert_eq "PATH search rien trouvé -> CNF (127, command not found)" "$(echo "$expected" | sed -n '4p')" "$(echo "$actual" | sed -n '4p')"
 assert_eq "chemin direct existant + executable -> OK" "$(echo "$expected" | sed -n '5p')" "$(echo "$actual" | sed -n '5p')"

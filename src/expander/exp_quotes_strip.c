@@ -12,12 +12,6 @@
 
 #include "../../includes/minishell.h"
 
-/*
-** Retire les quotes qui DELIMITENT, garde celles qui sont a l'interieur
-** d'une autre paire. Appelee apres l'expansion des variables (issue #41),
-** jamais avant : sinon "$VAR" et '$VAR' deviendraient indiscernables.
-*/
-
 static void	strip_step(char c, t_lex_state *state, int *keep)
 {
 	*keep = 1;

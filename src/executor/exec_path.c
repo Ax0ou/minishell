@@ -16,24 +16,28 @@ static int	resolve_in_path(t_env *env, char *name, char **out)
 {
 	char	**dirs;
 	int		status;
+	int		best;
 	int		i;
 
 	dirs = ft_split(env_get(env, "PATH"), ':');
 	if (!dirs)
 		return (RESOLVE_CNF);
+	best = RESOLVE_CNF;
 	i = 0;
 	while (dirs[i])
 	{
 		status = handle_candidate(dirs[i], name, out);
-		if (status != RESOLVE_ENOENT)
+		if (status == RESOLVE_OK)
 		{
 			free_split(dirs);
-			return (status);
+			return (RESOLVE_OK);
 		}
+		if (status == RESOLVE_NOPERM)
+			best = RESOLVE_NOPERM;
 		i++;
 	}
 	free_split(dirs);
-	return (RESOLVE_CNF);
+	return (best);
 }
 
 t_path_status	resolve_path(t_env *env, char *name, char **out_path)

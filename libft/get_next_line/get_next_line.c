@@ -13,30 +13,6 @@
 #include "../inc/get_next_line.h"
 #include "../inc/libft.h"
 
-/* char	*read_and_stash(int fd, char *stash)
-{
-	char	*buffer;
-	ssize_t	bytes_read;
-
-	buffer = malloc(BUFFER_SIZE + 1);
-	if (!buffer)
-		return (NULL);
-	bytes_read = 1;
-	while (!ft_strchr(stash, '\n') && bytes_read > 0)
-	{
-		bytes_read = read(fd, buffer, BUFFER_SIZE);
-		if (bytes_read == -1)
-		{
-			free(buffer);
-			free(stash);
-			return (NULL);
-		}
-		buffer[bytes_read] = '\0';
-		stash = ft_strjoin(stash, buffer);
-	}
-	free(buffer);
-	return (stash);
-} */
 static char	*join_and_free(char *stash, char *buffer)
 {
 	char	*tmp;
